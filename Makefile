@@ -50,61 +50,32 @@ provision: ## Install Docker, git, make, 4G swap, and firewall (idempotent)
 	sudo ufw --force enable >/dev/null; \
 	echo "==> Provision done."
 
-env-file: ## Create .env from the example and fill CHANGE_ME secrets
-	@set -e; \
-	if [ ! -f $(ENV_FILE) ]; then \
-	  test -f .env.prod.example || { echo "ERROR: .env.prod.example missing"; exit 1; }; \
-	  cp .env.prod.example $(ENV_FILE); \
-	  echo "==> Created $(ENV_FILE) from example"; \
-	fi; \
-	grep -q '^JWT_SECRET=' $(ENV_FILE) || echo 'JWT_SECRET=CHANGE_ME_jwt_secret' >> $(ENV_FILE); \
-	grep -q '^JWT_EXPIRES_IN=' $(ENV_FILE) || echo 'JWT_EXPIRES_IN=8h' >> $(ENV_FILE); \
-	grep -q '^SYSTEM_ADMIN_EMAIL=' $(ENV_FILE) || echo 'SYSTEM_ADMIN_EMAIL=system.admin@prmsc.gov.pk' >> $(ENV_FILE); \
-	grep -q '^SYSTEM_ADMIN_PASSWORD=' $(ENV_FILE) || echo 'SYSTEM_ADMIN_PASSWORD=CHANGE_ME_admin_password' >> $(ENV_FILE); \
-	grep -q '^UPLOAD_ROOT=' $(ENV_FILE) || echo 'UPLOAD_ROOT=/app/uploads' >> $(ENV_FILE); \
-	if grep -qE 'CHANGE_ME|^JWT_SECRET=$$|^SYSTEM_ADMIN_PASSWORD=$$' $(ENV_FILE); then \
-	  pw=$$(openssl rand -hex 16); \
-	  jwt=$$(openssl rand -hex 32); \
-	  admin=$$(openssl rand -hex 10); \
-	  sed -i.bak \
-	    -e "s/CHANGE_ME_strong_password/$$pw/g" \
-	    -e "s/CHANGE_ME_jwt_secret/$$jwt/g" \
-	    -e "s/CHANGE_ME_admin_password/$$admin/g" \
-	    $(ENV_FILE); \
-	  rm -f $(ENV_FILE).bak; \
-	  chmod 600 $(ENV_FILE); \
-	  echo "==> Generated production secrets in $(ENV_FILE)"; \
-	  echo "    admin: $$(grep '^SYSTEM_ADMIN_EMAIL=' $(ENV_FILE) | cut -d= -f2)"; \
-	  echo "    password: $$admin"; \
-	fi
+env-file: ## Create .env if missing; never rotate an existing Postgres password
+	@chmod +x deploy/ensure-env.sh
+	@./deploy/ensure-env.sh
 
 check-env:
 	@test -f $(ENV_FILE) || { echo "ERROR: $(ENV_FILE) not found. Run: make deploy"; exit 1; }
 
-deploy: provision ## Clone/pull, write .env, build, migrate, start, health-check
+deploy: env-file ## Pull, build, migrate, start, health-check
 	@set -e; \
 	if [ ! -d .git ]; then \
 	  echo "==> Cloning $(REPO_URL)..."; \
-	  cp -f Makefile /tmp/wqms-Makefile.keep 2>/dev/null || true; \
-	  cp -f docker-compose.prod.yml /tmp/wqms-compose.keep 2>/dev/null || true; \
-	  rm -rf /tmp/wqms-src; \
 	  git clone "$(REPO_URL)" /tmp/wqms-src; \
 	  cp -a /tmp/wqms-src/. .; \
 	  rm -rf /tmp/wqms-src; \
-	  [ -f /tmp/wqms-Makefile.keep ] && cp /tmp/wqms-Makefile.keep Makefile || true; \
-	  [ -f /tmp/wqms-compose.keep ] && cp /tmp/wqms-compose.keep docker-compose.prod.yml || true; \
 	else \
 	  echo "==> Pulling latest..."; \
-	  git pull --ff-only || true; \
+	  git pull --ff-only; \
 	fi
 	@$(MAKE) --no-print-directory env-file
 	@set -e; \
 	if docker info >/dev/null 2>&1; then C="docker compose -f $(COMPOSE_FILE)"; \
 	else C="sudo docker compose -f $(COMPOSE_FILE)"; fi; \
 	export COMPOSE_PARALLEL_LIMIT=$(COMPOSE_PARALLEL_LIMIT); \
-	echo "==> Building images (one at a time)..."; \
+	echo "==> Building images..."; \
 	$$C pull postgres; \
-	$$C build --progress=plain; \
+	$$C --progress=plain build; \
 	echo "==> Starting stack..."; \
 	$$C up -d; \
 	echo "==> Waiting for health..."; \
@@ -112,8 +83,7 @@ deploy: provision ## Clone/pull, write .env, build, migrate, start, health-check
 	$(MAKE) --no-print-directory health; \
 	$$C ps; \
 	echo; \
-	echo "Deploy complete. App: http://$$(curl -fsS --max-time 5 ifconfig.me 2>/dev/null || echo 101.50.84.115)/"; \
-	echo "Next time:  cd ~/wqms && make deploy"
+	echo "Deploy complete. App: http://$$(curl -fsS --max-time 5 ifconfig.me 2>/dev/null || echo 101.50.84.115)/"
 
 up: env-file ## Build and start the full stack (detached)
 	@if docker info >/dev/null 2>&1; then C="docker compose -f $(COMPOSE_FILE)"; \
