@@ -21,6 +21,7 @@ import {
   updateUser,
 } from '@/lib/admin-api'
 import { ApiError } from '@/lib/api'
+import { copyTextToClipboard } from '@/lib/copy-to-clipboard'
 import {
   USER_ROLE_LABELS,
   organizationForRole,
@@ -237,8 +238,12 @@ export function AdminUsersPage() {
 
   async function copyNotice() {
     if (!notice) return
-    await navigator.clipboard.writeText(notice)
-    toast.success('Copied to clipboard')
+    try {
+      await copyTextToClipboard(notice)
+      toast.success('Copied to clipboard')
+    } catch {
+      toast.error('Failed to copy to clipboard')
+    }
   }
 
   return (
