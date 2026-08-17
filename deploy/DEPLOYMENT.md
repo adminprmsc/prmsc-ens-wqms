@@ -86,17 +86,11 @@ sudo ufw enable
 ## 3. First Deploy
 
 ```bash
-git clone <REPO_URL> wqms && cd wqms
-
-cp .env.prod.example .env
-#   - set a strong POSTGRES_PASSWORD
-#   - set WEB_HTTP_PORT (default 80)
-
-make up
-# or: ./deploy/deploy.sh
-
-make health
+git clone https://github.com/adminprmsc/prmsc-ens-wqms.git wqms && cd wqms
+make deploy
 ```
+
+`make deploy` installs Docker/swap if needed, writes `.env`, builds, migrates, starts, and health-checks. Re-run the same command for every later rollout.
 
 ---
 

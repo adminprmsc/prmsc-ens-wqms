@@ -4,3 +4,4 @@ node_modules/
 dist/
 coverage/
 *.log
+deploy/run-make-deploy-on-vm.sh
