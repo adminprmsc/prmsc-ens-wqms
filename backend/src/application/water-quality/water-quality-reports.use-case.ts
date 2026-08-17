@@ -12,51 +12,20 @@ import {
   toJudgmentRules,
   validateReceiptMeta,
   WaterQualityValidationError,
-  type RawParameterResultInput,
 } from '../../domain/water-quality';
 import { PrismaService } from '../../infrastructure/database/prisma/prisma.service';
+import { LabDocumentStorageService } from '../../infrastructure/storage/lab-document-storage.service';
+import type {
+  CreateWaterQualityReportCommand,
+  ReportActor,
+  SourceDocumentFile,
+} from './report-commands';
 
-export type ReportActor = {
-  id: string;
-  role: UserRole;
-};
-
-export type CreateWaterQualityReportCommand = {
-  reportSerialNo: string;
-  nwqlSampleCode?: string | null;
-  customerCode?: string | null;
-  customerName: string;
-  customerAddress?: string | null;
-  customerPhone?: string | null;
-  tehsilId: string;
-  villageId: string;
-  settlementId?: string | null;
-  sourceTypeId?: string | null;
-  sampleType?: 'SOURCE_WELL' | 'POU_TAP' | 'OHR';
-  sourceLabel?: string | null;
-  documentTehsilName?: string | null;
-  documentVillageName?: string | null;
-  siteName?: string | null;
-  reportCategory?: 'PCRWR' | 'BASELINE';
-  formType?: 'PRIORITY' | 'FULL';
-  workOrder?: string | null;
-  locationDetail: string;
-  gpsLatitude?: number | null;
-  gpsLongitude?: number | null;
-  samplingAt: Date;
-  receivedAt?: Date | null;
-  receiptTempC?: number | null;
-  receiptHumidityPct?: number | null;
-  analysisFrom?: Date | null;
-  analysisTo?: Date | null;
-  reportingDate: Date;
-  totalPages?: number | null;
-  termsAgreed?: boolean;
-  remarksOverride?: string | null;
-  results: RawParameterResultInput[];
-  requireAllParameters?: boolean;
-  createdById: string;
-};
+export type {
+  CreateWaterQualityReportCommand,
+  ReportActor,
+  SourceDocumentFile,
+} from './report-commands';
 
 function decimalToNumber(
   value: Prisma.Decimal | number | null | undefined,
@@ -114,10 +83,13 @@ type ReportListFilter = {
 
 @Injectable()
 export class WaterQualityReportsUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: LabDocumentStorageService,
+  ) {}
 
   async listParameters(formType?: 'PRIORITY' | 'FULL') {
-    return this.prisma.waterQualityParameter.findMany({
+    return await this.prisma.waterQualityParameter.findMany({
       where: {
         isActive: true,
         ...(formType === 'PRIORITY' ? { includedInPriority: true } : {}),
@@ -127,7 +99,7 @@ export class WaterQualityReportsUseCase {
   }
 
   async listSourceTypes() {
-    return this.prisma.sourceType.findMany({
+    return await this.prisma.sourceType.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
     });
@@ -164,7 +136,12 @@ export class WaterQualityReportsUseCase {
       this.prisma.waterQualityReport.count({ where }),
     ]);
 
-    return { items, total, page, pageSize };
+    return {
+      items: items.map((item) => this.toPublicReport(item)),
+      total,
+      page,
+      pageSize,
+    };
   }
 
   async analytics(
@@ -628,7 +605,35 @@ export class WaterQualityReportsUseCase {
       throw new NotFoundException('Water quality report not found');
     }
     this.assertCanView(actor, report);
-    return report;
+    return this.toPublicReport(report);
+  }
+
+  async getSourceDocument(
+    id: string,
+    actor: ReportActor,
+  ): Promise<SourceDocumentFile> {
+    const report = await this.prisma.waterQualityReport.findUnique({
+      where: { id },
+    });
+    if (!report) {
+      throw new NotFoundException('Water quality report not found');
+    }
+    this.assertCanView(actor, report);
+    if (!report.sourceFilePath || !report.sourceFileName) {
+      throw new NotFoundException(
+        'No original laboratory file is stored for this report',
+      );
+    }
+    if (!this.storage.exists(report.sourceFilePath)) {
+      throw new NotFoundException(
+        'The original laboratory file is missing from storage',
+      );
+    }
+    return {
+      absolutePath: this.storage.absolutePath(report.sourceFilePath),
+      fileName: report.sourceFileName,
+      mimeType: report.sourceFileMime ?? 'application/octet-stream',
+    };
   }
 
   async validateOnly(command: CreateWaterQualityReportCommand) {
@@ -771,8 +776,17 @@ export class WaterQualityReportsUseCase {
         },
       });
 
+      const report = command.sourceFileToken
+        ? await this.attachSourceFile(
+            created.id,
+            command.sourceFileToken,
+            command.createdById,
+            null,
+          )
+        : created;
+
       return {
-        report: created,
+        report: this.toPublicReport(report),
         judgment: judgment.conformity,
         exceededDetails: judgment.results.filter(
           (result) => result.exceedsLimit,
@@ -885,8 +899,17 @@ export class WaterQualityReportsUseCase {
         },
       });
 
+      const report = command.sourceFileToken
+        ? await this.attachSourceFile(
+            updated.id,
+            command.sourceFileToken,
+            actor.id,
+            existing.sourceFilePath,
+          )
+        : updated;
+
       return {
-        report: updated,
+        report: this.toPublicReport(report),
         judgment: judgment.conformity,
         exceededDetails: judgment.results.filter(
           (result) => result.exceedsLimit,
@@ -944,7 +967,7 @@ export class WaterQualityReportsUseCase {
       },
     });
 
-    return updated;
+    return this.toPublicReport(updated);
   }
 
   async approve(id: string, actor: ReportActor) {
@@ -978,7 +1001,7 @@ export class WaterQualityReportsUseCase {
       },
     });
 
-    return updated;
+    return this.toPublicReport(updated);
   }
 
   async reject(id: string, actor: ReportActor, reason: string) {
@@ -1012,7 +1035,7 @@ export class WaterQualityReportsUseCase {
       },
     });
 
-    return updated;
+    return this.toPublicReport(updated);
   }
 
   private visibilityWhere(
@@ -1109,6 +1132,81 @@ export class WaterQualityReportsUseCase {
         orderBy: { parameter: { sortOrder: 'asc' } },
       },
     } as const;
+  }
+
+  private toPublicReport<
+    T extends {
+      sourceFileName: string | null;
+      sourceFileMime: string | null;
+      sourceFilePath: string | null;
+      sourceFileSize: number | null;
+    },
+  >(report: T) {
+    const {
+      sourceFileName,
+      sourceFileMime,
+      sourceFilePath,
+      sourceFileSize,
+      ...rest
+    } = report;
+    return {
+      ...rest,
+      sourceFile:
+        sourceFileName && sourceFilePath
+          ? {
+              fileName: sourceFileName,
+              mimeType: sourceFileMime ?? 'application/octet-stream',
+              sizeBytes: sourceFileSize ?? 0,
+            }
+          : null,
+    };
+  }
+
+  private async attachSourceFile(
+    reportId: string,
+    token: string,
+    actorId: string,
+    previousPath: string | null,
+  ) {
+    const staging = await this.prisma.labDocumentStaging.findUnique({
+      where: { token },
+    });
+    if (!staging || staging.createdById !== actorId) {
+      throw new BadRequestException(
+        'Imported laboratory file is no longer available. Upload it again.',
+      );
+    }
+    if (staging.expiresAt.getTime() < Date.now()) {
+      await this.storage.deleteIfExists(staging.storagePath);
+      await this.prisma.labDocumentStaging.delete({
+        where: { id: staging.id },
+      });
+      throw new BadRequestException(
+        'Imported laboratory file expired. Upload it again.',
+      );
+    }
+
+    const moved = await this.storage.promoteToReport({
+      stagingPath: staging.storagePath,
+      reportId,
+      originalName: staging.originalName,
+    });
+
+    await this.prisma.labDocumentStaging.delete({ where: { id: staging.id } });
+    if (previousPath && previousPath !== moved.storagePath) {
+      await this.storage.deleteIfExists(previousPath);
+    }
+
+    return this.prisma.waterQualityReport.update({
+      where: { id: reportId },
+      data: {
+        sourceFileName: staging.originalName,
+        sourceFileMime: staging.mimeType,
+        sourceFilePath: moved.storagePath,
+        sourceFileSize: staging.sizeBytes,
+      },
+      include: this.detailInclude(),
+    });
   }
 
   private async resolveSourceType(

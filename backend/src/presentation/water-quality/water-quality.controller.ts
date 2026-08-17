@@ -9,12 +9,18 @@ import {
   Post,
   Query,
   Res,
+  StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { createReadStream } from 'fs';
 import type { Response } from 'express';
 import { ParseLabDocumentUseCase } from '../../application/water-quality/parse-lab-document.use-case';
+import type {
+  CreateWaterQualityReportCommand,
+  SourceDocumentFile,
+} from '../../application/water-quality/report-commands';
 import { WaterQualityReportsUseCase } from '../../application/water-quality/water-quality-reports.use-case';
 import { UserRole } from '../../domain/user/user';
 import { CurrentUser, Roles, type AuthUser } from '../auth/auth.decorators';
@@ -123,11 +129,27 @@ export class WaterQualityController {
     return this.reports.getReport(id, { id: user.id, role: user.role });
   }
 
+  @Get('reports/:id/document')
+  async downloadDocument(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const file: SourceDocumentFile = await this.reports.getSourceDocument(id, {
+      id: user.id,
+      role: user.role,
+    });
+    res.setHeader('Content-Type', file.mimeType);
+    res.setHeader('Content-Disposition', attachmentDisposition(file.fileName));
+    return new StreamableFile(createReadStream(file.absolutePath));
+  }
+
   @Post('reports/parse')
   @UseInterceptors(
     FileInterceptor('file', { limits: { fileSize: 12 * 1024 * 1024 } }),
   )
   parse(
+    @CurrentUser() user: AuthUser,
     @UploadedFile()
     file?: {
       buffer: Buffer;
@@ -142,6 +164,7 @@ export class WaterQualityController {
       buffer: file.buffer,
       fileName: file.originalname || 'report.docx',
       mimeType: file.mimetype,
+      createdById: user.id,
     });
   }
 
@@ -198,7 +221,10 @@ export class WaterQualityController {
     );
   }
 
-  private toCommand(body: CreateWaterQualityReportDto, createdById: string) {
+  private toCommand(
+    body: CreateWaterQualityReportDto,
+    createdById: string,
+  ): CreateWaterQualityReportCommand {
     return {
       reportSerialNo: body.reportSerialNo,
       nwqlSampleCode: body.nwqlSampleCode,
@@ -233,6 +259,7 @@ export class WaterQualityController {
       remarksOverride: body.remarksOverride,
       requireAllParameters: body.requireAllParameters,
       createdById,
+      sourceFileToken: body.sourceFileToken,
       results: body.results.map((result) => ({
         parameterCode: result.parameterCode,
         resultType: result.resultType,
@@ -242,4 +269,10 @@ export class WaterQualityController {
       })),
     };
   }
+}
+
+function attachmentDisposition(fileName: string) {
+  const ascii = fileName.replace(/[^\u0020-\u007E]/g, '_').replace(/"/g, '');
+  const encoded = encodeURIComponent(fileName);
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encoded}`;
 }

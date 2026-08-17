@@ -40,6 +40,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ReportDetailPanel } from '@/components/water-quality/report-detail-panel'
+import { DownloadSourceFileButton } from '@/components/water-quality/download-source-file-button'
 import {
   ConformityBadge,
   ReportStatusBadge,
@@ -302,6 +303,10 @@ export function PcrwrRecordsPage() {
                         >
                           View
                         </Button>
+                        <DownloadSourceFileButton
+                          reportId={row.id}
+                          fileName={row.sourceFile?.fileName}
+                        />
                         {isEditableReportStatus(row.status) ? (
                           <Button size="sm" variant="outline" render={<Link to={pcrwrEditReportPath(row.id)} />}>
                             Edit

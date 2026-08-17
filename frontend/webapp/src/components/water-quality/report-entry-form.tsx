@@ -44,6 +44,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { ConformityBadge } from '@/components/water-quality/status-badge'
+import { DownloadSourceFileButton } from '@/components/water-quality/download-source-file-button'
 import { LocationPicker } from '@/components/water-quality/location-picker'
 import { cn } from '@/lib/utils'
 import { ApiError } from '@/lib/api'
@@ -193,6 +194,12 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
   const [busy, setBusy] = useState<'validate' | 'draft' | 'submit' | null>(null)
   const [loadedStatus, setLoadedStatus] = useState<string | null>(null)
   const [rejectionReason, setRejectionReason] = useState<string | null>(null)
+  const [sourceFileToken, setSourceFileToken] = useState<string | null>(null)
+  const [attachedSourceFile, setAttachedSourceFile] = useState<{
+    fileName: string
+    mimeType: string
+    sizeBytes: number
+  } | null>(null)
   const isEditing = Boolean(reportId)
 
   useEffect(() => {
@@ -476,6 +483,7 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
         ...payload,
         termsAgreed: mode === 'submit' ? true : payload.termsAgreed,
         requireAllParameters: payload.formType === 'PRIORITY',
+        sourceFileToken: sourceFileToken || undefined,
       }
       const saved = reportId
         ? await updateReport(reportId, input)
@@ -506,6 +514,8 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
       setReportSerialNo(newReportSerial())
       setResultValues({})
       setTermsAgreed(false)
+      setSourceFileToken(null)
+      setAttachedSourceFile(null)
     } catch (error) {
       applyApiError(error)
     } finally {
@@ -524,6 +534,7 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
 
   async function applyParsed(parsed: ParsedLabDocument) {
     const fields = parsed.fields
+    setSourceFileToken(parsed.sourceFileToken)
     if (fields.reportSerialNo) setReportSerialNo(fields.reportSerialNo)
     if (fields.nwqlSampleCode) setNwqlSampleCode(fields.nwqlSampleCode)
     if (fields.customerCode) setCustomerCode(fields.customerCode)
@@ -620,6 +631,8 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
   async function applyLoadedReport(report: WaterQualityReportDetail) {
     setLoadedStatus(report.status)
     setRejectionReason(report.rejectionReason)
+    setSourceFileToken(null)
+    setAttachedSourceFile(report.sourceFile)
     setReportSerialNo(report.reportSerialNo)
     setNwqlSampleCode(report.nwqlSampleCode ?? '')
     setCustomerCode(report.customerCode ?? '')
@@ -995,6 +1008,22 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
             </Badge>
             <span>{parsedSummary}</span>
           </div>
+        ) : null}
+        {attachedSourceFile && reportId && !sourceFileToken ? (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/40 px-3 py-2 text-sm">
+            <span>
+              Stored original: <span className="font-medium">{attachedSourceFile.fileName}</span>
+            </span>
+            <DownloadSourceFileButton
+              reportId={reportId}
+              fileName={attachedSourceFile.fileName}
+            />
+          </div>
+        ) : null}
+        {sourceFileToken ? (
+          <p className="text-sm text-muted-foreground">
+            The uploaded laboratory file will be stored with this report when you save.
+          </p>
         ) : null}
       </SectionCard>
 

@@ -10,8 +10,10 @@ import {
 import { matchSourceType } from '../../domain/water-quality/source-type-matcher';
 import { DEFAULT_SOURCE_TYPE_BY_CATEGORY } from '../../domain/water-quality/source-types.catalog';
 import { PrismaService } from '../../infrastructure/database/prisma/prisma.service';
+import { LabDocumentStorageService } from '../../infrastructure/storage/lab-document-storage.service';
 
 export type ParsedDocumentResponse = {
+  sourceFileToken: string;
   sourceFileName: string;
   confidence: number;
   warnings: string[];
@@ -73,15 +75,36 @@ export type ParsedDocumentResponse = {
 
 @Injectable()
 export class ParseLabDocumentUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: LabDocumentStorageService,
+  ) {}
 
   async execute(input: {
     buffer: Buffer;
     fileName: string;
     mimeType?: string;
+    createdById: string;
   }): Promise<ParsedDocumentResponse> {
     try {
       const parsed = await parseLabDocument(input);
+      await this.pruneExpiredStaging();
+      const stored = await this.storage.writeStaging({
+        buffer: input.buffer,
+        originalName: input.fileName,
+        mimeType: input.mimeType,
+      });
+      await this.prisma.labDocumentStaging.create({
+        data: {
+          token: stored.token,
+          originalName: stored.originalName,
+          mimeType: stored.mimeType,
+          storagePath: stored.storagePath,
+          sizeBytes: stored.sizeBytes,
+          createdById: input.createdById,
+          expiresAt: stored.expiresAt,
+        },
+      });
       const siteName = settlementHintFromReport(
         parsed.report.locationDetail,
         parsed.report.villageName,
@@ -113,7 +136,8 @@ export class ParseLabDocumentUseCase {
       }
 
       return {
-        sourceFileName: input.fileName,
+        sourceFileToken: stored.token,
+        sourceFileName: stored.originalName,
         confidence: parsed.report.confidence,
         warnings,
         formType: parsed.report.formType,
@@ -168,6 +192,21 @@ export class ParseLabDocumentUseCase {
         throw new BadRequestException(error.message);
       }
       throw error;
+    }
+  }
+
+  private async pruneExpiredStaging() {
+    const expired = await this.prisma.labDocumentStaging.findMany({
+      where: { expiresAt: { lt: new Date() } },
+      take: 50,
+    });
+    for (const row of expired) {
+      await this.storage.deleteIfExists(row.storagePath);
+    }
+    if (expired.length > 0) {
+      await this.prisma.labDocumentStaging.deleteMany({
+        where: { id: { in: expired.map((row) => row.id) } },
+      });
     }
   }
 

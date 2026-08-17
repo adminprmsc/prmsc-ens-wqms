@@ -24,6 +24,7 @@ model User {
   waterQualityReports WaterQualityReport[] @relation("ReportCreator")
   submittedReports    WaterQualityReport[] @relation("ReportSubmitter")
   reviewedReports     WaterQualityReport[] @relation("ReportReviewer")
+  labDocumentStaging  LabDocumentStaging[]
 
   @@map("users")
 }
@@ -278,6 +279,11 @@ model WaterQualityReport {
   termsAgreed         Boolean                  @default(false) @map("terms_agreed")
   status              WaterQualityReportStatus @default(DRAFT)
 
+  sourceFileName      String?                  @map("source_file_name")
+  sourceFileMime      String?                  @map("source_file_mime")
+  sourceFilePath      String?                  @map("source_file_path")
+  sourceFileSize      Int?                     @map("source_file_size")
+
   createdById         String?                  @map("created_by_id")
   submittedById       String?                  @map("submitted_by_id")
   submittedAt         DateTime?                @map("submitted_at")
@@ -313,6 +319,25 @@ model WaterQualityReport {
   @@index([createdById])
   @@index([submittedById])
   @@map("water_quality_reports")
+}
+
+/// Temporary copy of an imported NWQL Word/PDF until the report is saved.
+model LabDocumentStaging {
+  id           String   @id @default(cuid())
+  token        String   @unique
+  originalName String   @map("original_name")
+  mimeType     String   @map("mime_type")
+  storagePath  String   @map("storage_path")
+  sizeBytes    Int      @map("size_bytes")
+  createdById  String   @map("created_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  expiresAt    DateTime @map("expires_at")
+
+  createdBy User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([createdById])
+  @@index([expiresAt])
+  @@map("lab_document_staging")
 }
 
 /// Measured value for one parameter within a report, with snapshot judgment.

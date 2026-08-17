@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { ConformityBadge, ReportStatusBadge } from '@/components/water-quality/status-badge'
+import { DownloadSourceFileButton } from '@/components/water-quality/download-source-file-button'
 import { buttonVariants } from '@/components/ui/button'
 import {
   Table,
@@ -53,6 +54,10 @@ export function ReportDetailPanel({
             Edit report
           </Link>
         ) : null}
+        <DownloadSourceFileButton
+          reportId={report.id}
+          fileName={report.sourceFile?.fileName}
+        />
       </div>
 
       <dl className="grid gap-3 text-sm sm:grid-cols-2">
@@ -134,6 +139,12 @@ export function ReportDetailPanel({
         <div>
           <dt className="text-muted-foreground">Created by</dt>
           <dd>{report.createdBy?.name ?? '—'}</dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground">Original file</dt>
+          <dd className="font-medium">
+            {report.sourceFile?.fileName ?? 'Not stored'}
+          </dd>
         </div>
       </dl>
 

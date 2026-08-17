@@ -228,6 +228,11 @@ export class CreateWaterQualityReportDto {
   @IsBoolean()
   requireAllParameters?: boolean;
 
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-f0-9]{32,64}$/i)
+  sourceFileToken?: string;
+
   @IsArray()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })

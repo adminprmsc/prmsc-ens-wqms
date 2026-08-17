@@ -51,6 +51,11 @@ export type WaterQualityReportSummary = {
   village: { id: string; name: string }
   settlement: { id: string; name: string } | null
   createdBy: { id: string; name: string; email: string } | null
+  sourceFile: {
+    fileName: string
+    mimeType: string
+    sizeBytes: number
+  } | null
   _count: { results: number }
 }
 
@@ -268,6 +273,36 @@ export function getReport(id: string) {
   return apiRequest<WaterQualityReportDetail>(`/water-quality/reports/${id}`)
 }
 
+export async function downloadReportDocument(id: string) {
+  const token = getAccessToken()
+  const response = await fetch(`/api/water-quality/reports/${id}/document`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  })
+  if (!response.ok) {
+    throw new ApiError(
+      'Unable to download the original laboratory file',
+      response.status,
+    )
+  }
+  const blob = await response.blob()
+  const header = response.headers.get('Content-Disposition') ?? ''
+  const utfName = header.match(/filename\*=UTF-8''([^;]+)/i)?.[1]
+  const asciiName = header.match(/filename="([^"]+)"/i)?.[1]
+  const fileName = utfName
+    ? decodeURIComponent(utfName)
+    : asciiName || 'lab-report'
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
+
 export function validateReport(input: WaterQualityReportInput) {
   return apiRequest<{
     results: Array<{
@@ -290,7 +325,10 @@ export function validateReport(input: WaterQualityReportInput) {
 }
 
 export function createReport(
-  input: WaterQualityReportInput & { requireAllParameters?: boolean },
+  input: WaterQualityReportInput & {
+    requireAllParameters?: boolean
+    sourceFileToken?: string
+  },
 ) {
   return apiRequest<{
     report: WaterQualityReportDetail
@@ -306,7 +344,10 @@ export function createReport(
 
 export function updateReport(
   id: string,
-  input: WaterQualityReportInput & { requireAllParameters?: boolean },
+  input: WaterQualityReportInput & {
+    requireAllParameters?: boolean
+    sourceFileToken?: string
+  },
 ) {
   return apiRequest<{
     report: WaterQualityReportDetail
@@ -342,6 +383,7 @@ export function rejectReport(id: string, reason: string) {
 }
 
 export type ParsedLabDocument = {
+  sourceFileToken: string
   sourceFileName: string
   confidence: number
   warnings: string[]

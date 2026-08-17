@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { LocationPicker } from '@/components/water-quality/location-picker'
+import { DownloadSourceFileButton } from '@/components/water-quality/download-source-file-button'
 import {
   ConformityBadge,
   ReportStatusBadge,
@@ -386,6 +387,10 @@ export function ManagerReportsPage() {
                         >
                           Review
                         </Link>
+                        <DownloadSourceFileButton
+                          reportId={row.id}
+                          fileName={row.sourceFile?.fileName}
+                        />
                         {canReview(row.status) ? (
                           <>
                             <Button
