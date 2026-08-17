@@ -37,6 +37,8 @@ describe('PCRWR NWQL lab report parser', () => {
       report.results.map((result) => [result.parameterCode, result]),
     );
     expect(byCode.COLOR?.qualitativeValue).toMatch(/colorless/i);
+    expect(byCode.ODOUR?.qualitativeValue).toMatch(/unobj/i);
+    expect(byCode.TASTE?.qualitativeValue).toMatch(/unobj/i);
     expect(byCode.PH?.numericValue).toBe(7.6);
     expect(byCode.IRON?.numericValue).toBe(0.75);
     expect(byCode.ARSENIC?.numericValue).toBe(26);
@@ -62,6 +64,8 @@ Location	Masti Khail Mianwali
 Sampling Date & Time	03-10-2023, 12:30 PM
 Reporting Date	12-10-2023
 1	Color	-	-	Sensory Evaluation	Colorless	Colorless	-
+2	Odour	-	-	Sensory Evaluation	Unobj	UnObj	-
+3	Taste	-	-	Sensory Evaluation	Unobj	Unobj	-
 4	Electrical Conductivity	(µS/cm)	0.11	APHA, 23rd Edition	NGVS	916	± 4%
 20	Iron*	mg/L	0.04	APHA, 23rd Edition	0.3 (WHO, 2004)	BDL	± 3%
     `);
@@ -73,6 +77,18 @@ Reporting Date	12-10-2023
     expect(report.reportingDate).toBe('2023-10-12T00:00:00+05:00');
     expect(report.reportSerialNo).toBe('AR-04985');
     expect(report.nwqlSampleCode).toBe('MCL-10399-23');
+    expect(
+      report.results.find((item) => item.parameterCode === 'COLOR')
+        ?.qualitativeValue,
+    ).toBe('Colorless');
+    expect(
+      report.results.find((item) => item.parameterCode === 'ODOUR')
+        ?.qualitativeValue,
+    ).toBe('Unobj');
+    expect(
+      report.results.find((item) => item.parameterCode === 'TASTE')
+        ?.qualitativeValue,
+    ).toBe('Unobj');
     expect(
       report.results.find((item) => item.parameterCode === 'EC')?.numericValue,
     ).toBe(916);

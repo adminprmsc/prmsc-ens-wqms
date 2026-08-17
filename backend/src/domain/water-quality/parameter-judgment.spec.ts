@@ -24,6 +24,21 @@ describe('water quality parameter judgment', () => {
     expect(judged.exceedsLimit).toBe(true);
   });
 
+  it('accepts colourless / UnObj spellings for sensory parameters', () => {
+    expect(
+      judgeParameterResult(byCode('COLOR'), {
+        parameterCode: 'COLOR',
+        qualitativeValue: 'Colourless',
+      }).exceedsLimit,
+    ).toBe(false);
+    expect(
+      judgeParameterResult(byCode('ODOUR'), {
+        parameterCode: 'ODOUR',
+        qualitativeValue: 'UnObj',
+      }).exceedsLimit,
+    ).toBe(false);
+  });
+
   it('accepts pH within 6.5–8.5', () => {
     const judged = judgeParameterResult(byCode('PH'), {
       parameterCode: 'PH',

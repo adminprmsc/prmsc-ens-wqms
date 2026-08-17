@@ -1,4 +1,7 @@
-import { parseResultLiteral } from './parameter-judgment';
+import {
+  canonicalQualitativeValue,
+  parseResultLiteral,
+} from './parameter-judgment';
 import { WATER_QUALITY_PARAMETERS } from './water-quality-parameters.catalog';
 
 export type ParsedLabResult = {
@@ -101,9 +104,6 @@ const RESULT_SKIP = new Set(
   [
     '-',
     'ngvs',
-    'colorless',
-    'unobj',
-    'unobjectionable',
     'sensoryevaluation',
     'apha23rdedition',
     'usepa2000',
@@ -209,16 +209,36 @@ function toParsedResult(
 ): ParsedLabResult {
   const catalog = WATER_QUALITY_PARAMETERS.find((item) => item.code === code);
   const trimmed = rawValue.trim();
-  const parsed = parseResultLiteral(trimmed);
+  const canonical =
+    catalog?.limitOperator === 'QUALITATIVE'
+      ? (canonicalQualitativeValue(trimmed, catalog.qualitativeAllowed) ??
+        trimmed)
+      : trimmed;
+  const parsed = parseResultLiteral(canonical);
   return {
     parameterCode: code,
     parameterName: catalog?.name ?? code,
-    rawValue: trimmed,
+    rawValue: canonical,
     resultType: parsed.resultType,
     numericValue: parsed.numericValue,
     qualitativeValue: parsed.qualitativeValue,
     uncertainty,
   };
+}
+
+function pickResultToken(code: string, candidates: string[]): string | null {
+  const catalog = WATER_QUALITY_PARAMETERS.find((item) => item.code === code);
+  const usable = candidates.filter(isResultToken);
+  if (usable.length === 0) return null;
+  if (catalog?.limitOperator === 'QUALITATIVE') {
+    const qualitative = [...usable]
+      .reverse()
+      .find((item) =>
+        canonicalQualitativeValue(item, catalog.qualitativeAllowed),
+      );
+    return qualitative ?? null;
+  }
+  return usable.at(-1) ?? null;
 }
 
 function inferSampleType(
@@ -386,9 +406,12 @@ function extractResultsFromTabRows(text: string): ParsedLabResult[] {
     const cells = line.split('\t').map(cleanCell);
     if (cells.length >= 7 && /^\d+$/.test(cells[0] ?? '')) {
       const code = resolveParameterCode(cells[1] ?? '');
-      const rawValue = cells[6] ?? '';
+      const rawValue = pickResultToken(code ?? '', [
+        cells[6] ?? '',
+        ...cells.slice(5),
+      ]);
       const uncertainty = cells[7] && cells[7] !== '-' ? cells[7] : null;
-      if (code && rawValue && isResultToken(rawValue) && !found.has(code)) {
+      if (code && rawValue && !found.has(code)) {
         found.set(code, toParsedResult(code, rawValue, uncertainty));
       }
       continue;
@@ -401,8 +424,8 @@ function extractResultsFromTabRows(text: string): ParsedLabResult[] {
       const uncertaintyIndex = trailing.findIndex((cell) => /^±/.test(cell));
       const chosen =
         uncertaintyIndex > 0
-          ? trailing[uncertaintyIndex - 1]
-          : trailing.filter(isResultToken).at(-1);
+          ? pickResultToken(code, [trailing[uncertaintyIndex - 1] ?? ''])
+          : pickResultToken(code, trailing);
       if (!chosen) continue;
       const uncertainty = trailing.find((cell) => /^±/.test(cell)) ?? null;
       found.set(code, toParsedResult(code, chosen, uncertainty));
@@ -416,9 +439,22 @@ function extractResultsByName(text: string): ParsedLabResult[] {
   const compact = text.replace(/\r/g, '');
   for (const parameter of WATER_QUALITY_PARAMETERS) {
     const names = [parameter.name, parameter.code.replaceAll('_', ' ')];
+    const qualitativeAlt =
+      parameter.limitOperator === 'QUALITATIVE'
+        ? [
+            ...parameter.qualitativeAllowed,
+            'Colorless',
+            'Colourless',
+            'UnObj',
+            'Unobj',
+            'Unobjectionable',
+          ]
+            .map((item) => item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+            .join('|')
+        : 'BDL|NDL|TNTC|-ve|\\+ve|Colorless|UnObj|Unobj|\\d+(?:\\.\\d+)?';
     for (const name of names) {
       const pattern = new RegExp(
-        `${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\*?[\\s\\S]{0,180}?(BDL|NDL|TNTC|-ve|\\+ve|Colorless|UnObj|Unobj|\\d+(?:\\.\\d+)?)`,
+        `${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\*?[\\s\\S]{0,180}?(${qualitativeAlt})`,
         'i',
       );
       const match = compact.match(pattern);

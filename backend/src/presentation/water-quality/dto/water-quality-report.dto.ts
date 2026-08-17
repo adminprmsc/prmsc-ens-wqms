@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
@@ -16,6 +16,11 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
+
+function emptyToUndefined({ value }: { value: unknown }) {
+  if (typeof value === 'string' && value.trim() === '') return undefined;
+  return value;
+}
 
 enum ResultValueTypeDto {
   NUMERIC = 'NUMERIC',
@@ -72,6 +77,7 @@ export class CreateWaterQualityReportDto {
   reportSerialNo!: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   @MaxLength(100)
   @Matches(/^[A-Za-z0-9][A-Za-z0-9/\s-]*$/, {
@@ -80,6 +86,7 @@ export class CreateWaterQualityReportDto {
   nwqlSampleCode?: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   @MaxLength(50)
   customerCode?: string;
@@ -90,11 +97,13 @@ export class CreateWaterQualityReportDto {
   customerName!: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   @MaxLength(500)
   customerAddress?: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   @MaxLength(40)
   @Matches(/^[0-9+\s()-]*$/, {
@@ -111,6 +120,7 @@ export class CreateWaterQualityReportDto {
   villageId!: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   settlementId?: string;
 
@@ -124,21 +134,25 @@ export class CreateWaterQualityReportDto {
   sampleType?: SampleTypeDto;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   @MaxLength(100)
   sourceLabel?: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   @MaxLength(120)
   documentTehsilName?: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   @MaxLength(120)
   documentVillageName?: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   @MaxLength(200)
   siteName?: string;
@@ -152,6 +166,7 @@ export class CreateWaterQualityReportDto {
   formType?: FormTypeDto;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   @MaxLength(100)
   workOrder?: string;
@@ -181,6 +196,7 @@ export class CreateWaterQualityReportDto {
   samplingAt!: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsDateString()
   receivedAt?: string;
 
@@ -199,10 +215,12 @@ export class CreateWaterQualityReportDto {
   receiptHumidityPct?: number;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsDateString()
   analysisFrom?: string;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsDateString()
   analysisTo?: string;
 
@@ -220,6 +238,7 @@ export class CreateWaterQualityReportDto {
   termsAgreed?: boolean;
 
   @IsOptional()
+  @Transform(emptyToUndefined)
   @IsString()
   @MaxLength(2000)
   remarksOverride?: string;

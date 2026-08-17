@@ -72,8 +72,11 @@ import {
   FORM_TYPE_LABELS,
   PARAMETER_CATEGORY_LABELS,
   REPORT_CATEGORY_LABELS,
+  coerceResultValues,
   isoToDatetimeLocal,
+  isEnteredResult,
   localDateTimeValue,
+  matchQualitativeOption,
   newReportSerial,
   parseParameterInput,
 } from '@/lib/water-quality-labels'
@@ -121,8 +124,13 @@ function optionalNumber(raw: string): number | null {
   return Number.isFinite(value) ? value : Number.NaN
 }
 
+function optionalText(value: string) {
+  const trimmed = value.trim()
+  return trimmed ? trimmed : undefined
+}
+
 function toIso(value: string) {
-  if (!value) return ''
+  if (!value) return undefined
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? value : date.toISOString()
 }
@@ -285,7 +293,7 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
 
   useEffect(() => {
     if (pendingResults.current && parameters.length > 0) {
-      setResultValues(pendingResults.current)
+      setResultValues(coerceResultValues(pendingResults.current, parameters))
       pendingResults.current = null
     }
   }, [parameters])
@@ -364,8 +372,32 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
 
   function buildPayload() {
     const results = parameters.flatMap((parameter) => {
-      const parsed = parseParameterInput(resultValues[parameter.code] ?? '')
+      const raw = resultValues[parameter.code] ?? ''
+      if (parameter.limitOperator === 'QUALITATIVE') {
+        const matched = raw.trim()
+          ? coerceResultValues(
+              { [parameter.code]: raw },
+              [parameter],
+            )[parameter.code]
+          : ''
+        if (!matched?.trim()) return []
+        return [
+          {
+            parameterCode: parameter.code,
+            resultType: 'QUALITATIVE' as const,
+            numericValue: null,
+            qualitativeValue: matched,
+          },
+        ]
+      }
+      const parsed = parseParameterInput(raw)
       if (!parsed) return []
+      if (
+        parsed.resultType === 'QUALITATIVE' &&
+        parameter.limitOperator !== 'QUALITATIVE'
+      ) {
+        return []
+      }
       return [
         {
           parameterCode: parameter.code,
@@ -378,36 +410,36 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
 
     return {
       reportSerialNo,
-      nwqlSampleCode,
-      customerCode,
+      nwqlSampleCode: optionalText(nwqlSampleCode),
+      customerCode: optionalText(customerCode),
       customerName,
-      customerAddress,
-      customerPhone,
+      customerAddress: optionalText(customerAddress),
+      customerPhone: optionalText(customerPhone),
       tehsilId,
       villageId,
-      settlementId,
+      settlementId: optionalText(settlementId) ?? '',
       sourceTypeId,
       sampleType,
-      sourceLabel,
-      documentTehsilName,
-      documentVillageName,
-      siteName,
+      sourceLabel: optionalText(sourceLabel),
+      documentTehsilName: optionalText(documentTehsilName),
+      documentVillageName: optionalText(documentVillageName),
+      siteName: optionalText(siteName),
       reportCategory,
       formType,
-      workOrder,
+      workOrder: optionalText(workOrder),
       locationDetail,
       gpsLatitude: optionalNumber(gpsLatitude),
       gpsLongitude: optionalNumber(gpsLongitude),
-      samplingAt: toIso(samplingAt),
-      receivedAt: toIso(receivedAt),
+      samplingAt: toIso(samplingAt) ?? '',
+      receivedAt: toIso(receivedAt) ?? '',
       receiptTempC: optionalNumber(receiptTempC),
       receiptHumidityPct: optionalNumber(receiptHumidityPct),
-      analysisFrom: toIso(analysisFrom),
-      analysisTo: toIso(analysisTo),
-      reportingDate: toIso(reportingDate),
+      analysisFrom: toIso(analysisFrom) ?? '',
+      analysisTo: toIso(analysisTo) ?? '',
+      reportingDate: toIso(reportingDate) ?? '',
       totalPages: optionalNumber(totalPages),
       termsAgreed,
-      remarksOverride,
+      remarksOverride: optionalText(remarksOverride) ?? '',
       results,
     }
   }
@@ -577,10 +609,14 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
     await applyParsedLocation(parsed)
     const nextResults: Record<string, string> = {}
     for (const result of parsed.results) {
-      nextResults[result.parameterCode] = result.rawValue
+      nextResults[result.parameterCode] =
+        result.qualitativeValue?.trim() ||
+        result.rawValue ||
+        (result.numericValue != null ? String(result.numericValue) : '')
     }
+    const coerced = coerceResultValues(nextResults, parameters)
     pendingResults.current = nextResults
-    setResultValues(nextResults)
+    setResultValues(coerced)
     const locationLabel = [
       parsed.location.tehsilName,
       parsed.location.villageName,
@@ -674,7 +710,7 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
           : '')
     }
     pendingResults.current = nextResults
-    setResultValues(nextResults)
+    setResultValues(coerceResultValues(nextResults, parameters))
     setParsedSummary(
       `Editing ${report.reportSerialNo} · ${report.status === 'REJECTED' ? 'rejected — correct and resubmit' : 'draft'}`,
     )
@@ -799,7 +835,7 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
   }
 
   const filledCount = parameters.filter((parameter) =>
-    Boolean(resultValues[parameter.code]?.trim()),
+    isEnteredResult(resultValues[parameter.code], parameter),
   ).length
   const locationReady = Boolean(tehsilId && villageId)
 
@@ -1407,7 +1443,7 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
           ) : (
             groupedParameters.map((group) => {
               const groupFilled = group.items.filter((item) =>
-                Boolean(resultValues[item.code]?.trim()),
+                isEnteredResult(resultValues[item.code], item),
               ).length
               return (
               <div
@@ -1445,7 +1481,18 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
                         <TableCell>
                           {parameter.limitOperator === 'QUALITATIVE' ? (
                             <Select
-                              value={resultValues[parameter.code] || undefined}
+                              value={
+                                matchQualitativeOption(
+                                  resultValues[parameter.code] ?? '',
+                                  parameter.qualitativeAllowed,
+                                ) || null
+                              }
+                              items={(parameter.qualitativeAllowed ?? []).map(
+                                (option) => ({
+                                  value: option,
+                                  label: option,
+                                }),
+                              )}
                               onValueChange={(value) =>
                                 setResultValues((current) => ({
                                   ...current,
@@ -1457,7 +1504,7 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
                                 <SelectValue placeholder="Select result" />
                               </SelectTrigger>
                               <SelectContent>
-                                {parameter.qualitativeAllowed.map((option) => (
+                                {(parameter.qualitativeAllowed ?? []).map((option) => (
                                   <SelectItem key={option} value={option}>
                                     {option}
                                   </SelectItem>

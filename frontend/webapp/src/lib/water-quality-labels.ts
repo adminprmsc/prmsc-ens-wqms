@@ -83,10 +83,81 @@ function randomToken(length: number) {
     .padEnd(length, '0')
 }
 
+const COLORLESS_TOKENS = new Set(['colorless', 'colourless', 'clear'])
+const UNOBJ_TOKENS = new Set(['unobj', 'unobjectionable'])
+
+function qualitativeToken(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '')
+}
+
+/** Map a lab-report spelling onto a catalog Select option. */
+export function matchQualitativeOption(
+  raw: string,
+  allowed: string[],
+): string | null {
+  const token = qualitativeToken(raw)
+  if (!token || !allowed?.length) return null
+  const exact = allowed.find((item) => qualitativeToken(item) === token)
+  if (exact) return exact
+  if (COLORLESS_TOKENS.has(token)) {
+    return (
+      allowed.find((item) => COLORLESS_TOKENS.has(qualitativeToken(item))) ??
+      null
+    )
+  }
+  if (UNOBJ_TOKENS.has(token) || token.startsWith('unobj')) {
+    return (
+      allowed.find((item) => {
+        const allowedToken = qualitativeToken(item)
+        return UNOBJ_TOKENS.has(allowedToken) || allowedToken.startsWith('unobj')
+      }) ?? null
+    )
+  }
+  return null
+}
+
+export function coerceResultValues(
+  values: Record<string, string>,
+  parameters: Array<{
+    code: string
+    limitOperator: string
+    qualitativeAllowed: string[]
+  }>,
+): Record<string, string> {
+  const next = { ...values }
+  for (const parameter of parameters) {
+    const raw = next[parameter.code]
+    if (!raw?.trim()) continue
+    if (parameter.limitOperator !== 'QUALITATIVE') continue
+    next[parameter.code] =
+      matchQualitativeOption(raw, parameter.qualitativeAllowed) ?? ''
+  }
+  return next
+}
+
+export function isEnteredResult(
+  raw: string | undefined,
+  parameter: { limitOperator: string; qualitativeAllowed: string[] },
+) {
+  if (!raw?.trim()) return false
+  if (parameter.limitOperator === 'QUALITATIVE') {
+    return Boolean(matchQualitativeOption(raw, parameter.qualitativeAllowed))
+  }
+  return parseParameterInput(raw) != null
+}
+
 export function parseParameterInput(raw: string) {
   const trimmed = raw.trim()
   if (!trimmed) return null
   const token = trimmed.toLowerCase().replace(/[\s_-]+/g, '')
+  if (
+    trimmed === '-' ||
+    trimmed === '—' ||
+    trimmed === '–' ||
+    ['na', 'n/a', 'none', 'ngvs', 'blank'].includes(token)
+  ) {
+    return null
+  }
   if (
     ['bdl', 'ndl', 'nd', 'nil', 'notdetected', 'belowdetectionlimit'].includes(
       token,

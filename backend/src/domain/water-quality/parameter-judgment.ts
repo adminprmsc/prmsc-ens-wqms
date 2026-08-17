@@ -214,9 +214,35 @@ function normalizeInput(input: RawParameterResultInput): Omit<
   );
 }
 
+const COLORLESS_TOKENS = new Set(['colorless', 'colourless', 'clear']);
+
 function isQualitativeAllowed(value: string, allowed: string[]): boolean {
   const token = normalizeToken(value);
-  return allowed.some((item) => normalizeToken(item) === token);
+  if (!token) return false;
+  return allowed.some((item) => {
+    const allowedToken = normalizeToken(item);
+    if (allowedToken === token) return true;
+    if (COLORLESS_TOKENS.has(token) && COLORLESS_TOKENS.has(allowedToken)) {
+      return true;
+    }
+    if (
+      (token === 'unobj' || token.startsWith('unobj')) &&
+      (allowedToken === 'unobj' || allowedToken.startsWith('unobj'))
+    ) {
+      return true;
+    }
+    return false;
+  });
+}
+
+export function canonicalQualitativeValue(
+  raw: string,
+  allowed: string[],
+): string | null {
+  if (!raw.trim() || allowed.length === 0) return null;
+  const matched = allowed.find((item) => isQualitativeAllowed(raw, [item]));
+  if (matched) return matched;
+  return isQualitativeAllowed(raw, allowed) ? allowed[0] : null;
 }
 
 function judgeNumericAgainstLimit(
