@@ -22,6 +22,17 @@ function emptyToUndefined({ value }: { value: unknown }) {
   return value;
 }
 
+function nullishToUndefined({ value }: { value: unknown }) {
+  if (value === null || value === '') return undefined;
+  return value;
+}
+
+function toOptionalNumber({ value }: { value: unknown }) {
+  if (value === null || value === '' || value === undefined) return undefined;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : undefined;
+}
+
 enum ResultValueTypeDto {
   NUMERIC = 'NUMERIC',
   BDL = 'BDL',
@@ -57,11 +68,12 @@ export class WaterQualityResultInputDto {
   resultType?: ResultValueTypeDto;
 
   @IsOptional()
-  @Type(() => Number)
+  @Transform(toOptionalNumber)
   @IsNumber()
   numericValue?: number | null;
 
   @IsOptional()
+  @Transform(nullishToUndefined)
   @IsString()
   qualitativeValue?: string | null;
 

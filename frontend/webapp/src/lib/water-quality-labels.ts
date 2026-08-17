@@ -187,12 +187,34 @@ export function parseParameterInput(raw: string) {
       qualitativeValue: 'TNTC',
     }
   }
+  if (
+    trimmed === '+ve' ||
+    trimmed === '+Ve' ||
+    ['+ve', 'positive', 'present'].includes(token)
+  ) {
+    return {
+      resultType: 'POSITIVE' as const,
+      numericValue: null as number | null,
+      qualitativeValue: '+ve',
+    }
+  }
   const numeric = Number(trimmed.replace(/,/g, ''))
   if (Number.isFinite(numeric) && /^-?\d/.test(trimmed.replace(/,/g, ''))) {
     return {
       resultType: 'NUMERIC' as const,
       numericValue: numeric as number | null,
       qualitativeValue: null as string | null,
+    }
+  }
+  const leading = trimmed.match(/^-?\d+(?:\.\d+)?/)
+  if (leading) {
+    const fromPrefix = Number(leading[0])
+    if (Number.isFinite(fromPrefix)) {
+      return {
+        resultType: 'NUMERIC' as const,
+        numericValue: fromPrefix as number | null,
+        qualitativeValue: null as string | null,
+      }
     }
   }
   return {

@@ -303,7 +303,9 @@ export async function downloadReportDocument(id: string) {
   URL.revokeObjectURL(url)
 }
 
-export function validateReport(input: WaterQualityReportInput) {
+export function validateReport(
+  input: WaterQualityReportInput & { requireAllParameters?: boolean },
+) {
   return apiRequest<{
     results: Array<{
       parameterCode: string

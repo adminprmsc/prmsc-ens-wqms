@@ -666,8 +666,7 @@ export class WaterQualityReportsUseCase {
       orderBy: { sortOrder: 'asc' },
     });
 
-    const requireAll =
-      command.requireAllParameters === true || formType === 'PRIORITY';
+    const requireAll = command.requireAllParameters === true;
 
     try {
       return judgeReportResults(

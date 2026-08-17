@@ -124,11 +124,6 @@ function optionalNumber(raw: string): number | null {
   return Number.isFinite(value) ? value : Number.NaN
 }
 
-function optionalText(value: string) {
-  const trimmed = value.trim()
-  return trimmed ? trimmed : undefined
-}
-
 function toIso(value: string) {
   if (!value) return undefined
   const date = new Date(value)
@@ -385,61 +380,58 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
           {
             parameterCode: parameter.code,
             resultType: 'QUALITATIVE' as const,
-            numericValue: null,
             qualitativeValue: matched,
           },
         ]
       }
       const parsed = parseParameterInput(raw)
       if (!parsed) return []
-      if (
-        parsed.resultType === 'QUALITATIVE' &&
-        parameter.limitOperator !== 'QUALITATIVE'
-      ) {
-        return []
-      }
       return [
         {
           parameterCode: parameter.code,
           resultType: parsed.resultType,
-          numericValue: parsed.numericValue,
-          qualitativeValue: parsed.qualitativeValue,
+          ...(parsed.numericValue !== null && parsed.numericValue !== undefined
+            ? { numericValue: parsed.numericValue }
+            : {}),
+          ...(parsed.qualitativeValue
+            ? { qualitativeValue: parsed.qualitativeValue }
+            : {}),
         },
       ]
     })
 
     return {
       reportSerialNo,
-      nwqlSampleCode: optionalText(nwqlSampleCode),
-      customerCode: optionalText(customerCode),
+      nwqlSampleCode: nwqlSampleCode,
+      customerCode: customerCode,
       customerName,
-      customerAddress: optionalText(customerAddress),
-      customerPhone: optionalText(customerPhone),
+      customerAddress: customerAddress,
+      customerPhone: customerPhone,
       tehsilId,
       villageId,
-      settlementId: optionalText(settlementId) ?? '',
+      settlementId,
       sourceTypeId,
       sampleType,
-      sourceLabel: optionalText(sourceLabel),
-      documentTehsilName: optionalText(documentTehsilName),
-      documentVillageName: optionalText(documentVillageName),
-      siteName: optionalText(siteName),
+      sourceLabel,
+      documentTehsilName,
+      documentVillageName,
+      siteName,
       reportCategory,
       formType,
-      workOrder: optionalText(workOrder),
+      workOrder,
       locationDetail,
       gpsLatitude: optionalNumber(gpsLatitude),
       gpsLongitude: optionalNumber(gpsLongitude),
-      samplingAt: toIso(samplingAt) ?? '',
+      samplingAt: toIso(samplingAt) || samplingAt,
       receivedAt: toIso(receivedAt) ?? '',
       receiptTempC: optionalNumber(receiptTempC),
       receiptHumidityPct: optionalNumber(receiptHumidityPct),
       analysisFrom: toIso(analysisFrom) ?? '',
       analysisTo: toIso(analysisTo) ?? '',
-      reportingDate: toIso(reportingDate) ?? '',
+      reportingDate: toIso(reportingDate) || reportingDate,
       totalPages: optionalNumber(totalPages),
       termsAgreed,
-      remarksOverride: optionalText(remarksOverride) ?? '',
+      remarksOverride,
       results,
     }
   }
@@ -491,7 +483,10 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
     if (!payload) return
     setBusy('validate')
     try {
-      const judged = await validateReport(payload)
+      const judged = await validateReport({
+        ...payload,
+        requireAllParameters: payload.formType === 'PRIORITY',
+      })
       setPreview(judged.conformity)
       toast.success(judged.conformity.overallRemarks)
     } catch (error) {
@@ -514,7 +509,8 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
       const input = {
         ...payload,
         termsAgreed: mode === 'submit' ? true : payload.termsAgreed,
-        requireAllParameters: payload.formType === 'PRIORITY',
+        requireAllParameters:
+          mode !== 'draft' && payload.formType === 'PRIORITY',
         sourceFileToken: sourceFileToken || undefined,
       }
       const saved = reportId
@@ -611,8 +607,9 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
     for (const result of parsed.results) {
       nextResults[result.parameterCode] =
         result.qualitativeValue?.trim() ||
-        result.rawValue ||
-        (result.numericValue != null ? String(result.numericValue) : '')
+        (result.numericValue != null
+          ? String(result.numericValue)
+          : result.rawValue || '')
     }
     const coerced = coerceResultValues(nextResults, parameters)
     pendingResults.current = nextResults
