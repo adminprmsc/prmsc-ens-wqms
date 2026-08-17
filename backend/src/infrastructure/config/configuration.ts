@@ -12,12 +12,13 @@ export default () => ({
     url: process.env.DATABASE_URL,
   },
   jwt: {
-    secret: process.env.JWT_SECRET ?? 'wqms-dev-jwt-secret-change-me',
-    expiresIn: process.env.JWT_EXPIRES_IN ?? '8h',
+    secret: process.env.JWT_SECRET?.trim() || 'wqms-dev-jwt-secret-change-me',
+    expiresIn: process.env.JWT_EXPIRES_IN?.trim() || '8h',
   },
   seed: {
     systemAdminEmail:
-      process.env.SYSTEM_ADMIN_EMAIL ?? 'system.admin@prmsc.gov.pk',
-    systemAdminPassword: process.env.SYSTEM_ADMIN_PASSWORD ?? 'ChangeMe@123',
+      process.env.SYSTEM_ADMIN_EMAIL?.trim() || 'system.admin@prmsc.gov.pk',
+    systemAdminPassword:
+      process.env.SYSTEM_ADMIN_PASSWORD?.trim() || 'ChangeMe@123',
   },
 });

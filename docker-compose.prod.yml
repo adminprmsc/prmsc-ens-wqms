@@ -59,7 +59,7 @@ services:
       <<: *database_url
       RUN_SEED: ${RUN_SEED:-true}
       SYSTEM_ADMIN_EMAIL: ${SYSTEM_ADMIN_EMAIL:-system.admin@prmsc.gov.pk}
-      SYSTEM_ADMIN_PASSWORD: ${SYSTEM_ADMIN_PASSWORD}
+      SYSTEM_ADMIN_PASSWORD: ${SYSTEM_ADMIN_PASSWORD:-ChangeMe@123}
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,7 +79,7 @@ services:
       NODE_ENV: production
       PORT: 3000
       NODE_OPTIONS: --max-old-space-size=384
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-wqms-change-me-set-in-dot-env}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       UPLOAD_ROOT: ${UPLOAD_ROOT:-/app/uploads}

@@ -62,7 +62,7 @@ env-file: ## Create .env from the example and fill CHANGE_ME secrets
 	grep -q '^SYSTEM_ADMIN_EMAIL=' $(ENV_FILE) || echo 'SYSTEM_ADMIN_EMAIL=system.admin@prmsc.gov.pk' >> $(ENV_FILE); \
 	grep -q '^SYSTEM_ADMIN_PASSWORD=' $(ENV_FILE) || echo 'SYSTEM_ADMIN_PASSWORD=CHANGE_ME_admin_password' >> $(ENV_FILE); \
 	grep -q '^UPLOAD_ROOT=' $(ENV_FILE) || echo 'UPLOAD_ROOT=/app/uploads' >> $(ENV_FILE); \
-	if grep -q 'CHANGE_ME' $(ENV_FILE); then \
+	if grep -qE 'CHANGE_ME|^JWT_SECRET=$$|^SYSTEM_ADMIN_PASSWORD=$$' $(ENV_FILE); then \
 	  pw=$$(openssl rand -hex 16); \
 	  jwt=$$(openssl rand -hex 32); \
 	  admin=$$(openssl rand -hex 10); \
