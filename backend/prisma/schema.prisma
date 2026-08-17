@@ -1,0 +1,340 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  name               String
+  email              String    @unique
+  passwordHash       String    @map("password_hash")
+  role               UserRole  @default(USER)
+  organization       String?
+  isActive           Boolean   @default(true) @map("is_active")
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
+  lastLoginAt        DateTime? @map("last_login_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  auditActions        AuditLog[]           @relation("AuditActor")
+  auditTargets        AuditLog[]           @relation("AuditTarget")
+  waterQualityReports WaterQualityReport[] @relation("ReportCreator")
+  submittedReports    WaterQualityReport[] @relation("ReportSubmitter")
+  reviewedReports     WaterQualityReport[] @relation("ReportReviewer")
+
+  @@map("users")
+}
+
+enum UserRole {
+  SYSTEM_ADMIN
+  SUPER_ADMIN
+  USER
+}
+
+enum AuditAction {
+  USER_CREATED
+  USER_UPDATED
+  USER_ACTIVATED
+  USER_DEACTIVATED
+  PASSWORD_RESET
+  PASSWORD_CHANGED
+  ROLE_CHANGED
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  REPORT_CREATED
+  REPORT_UPDATED
+  REPORT_SUBMITTED
+  REPORT_APPROVED
+  REPORT_REJECTED
+}
+
+model AuditLog {
+  id        String      @id @default(cuid())
+  action    AuditAction
+  actorId   String?     @map("actor_id")
+  targetId  String?     @map("target_id")
+  metadata  Json?
+  ipAddress String?     @map("ip_address")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  actor  User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  target User? @relation("AuditTarget", fields: [targetId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([action])
+  @@index([actorId])
+  @@index([targetId])
+  @@map("audit_logs")
+}
+
+/// Administrative tehsil reference data for water-quality reporting locations.
+model Tehsil {
+  id        String               @id @default(cuid())
+  name      String               @unique
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+  villages  Village[]
+  reports   WaterQualityReport[]
+
+  @@map("tehsils")
+}
+
+/// Village within a tehsil.
+model Village {
+  id          String               @id @default(cuid())
+  name        String
+  tehsilId    String               @map("tehsil_id")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+  tehsil      Tehsil               @relation(fields: [tehsilId], references: [id], onDelete: Cascade)
+  settlements Settlement[]
+  reports     WaterQualityReport[]
+
+  @@unique([tehsilId, name])
+  @@unique([id, tehsilId])
+  @@index([tehsilId])
+  @@index([name])
+  @@map("villages")
+}
+
+/// Optional settlement / abadi under a village.
+model Settlement {
+  id        String               @id @default(cuid())
+  name      String
+  villageId String               @map("village_id")
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+  village   Village              @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  reports   WaterQualityReport[]
+
+  @@unique([villageId, name])
+  @@unique([id, villageId])
+  @@index([villageId])
+  @@index([name])
+  @@map("settlements")
+}
+
+enum ParameterCategory {
+  PHYSICAL_AESTHETIC
+  CHEMICAL
+  TRACE_ELEMENT
+  MICROBIOLOGICAL
+}
+
+enum ParameterConformityGroup {
+  PHYSICAL
+  CHEMICAL
+  TRACE
+  MICROBIAL
+}
+
+/// How a measured value is judged against the potable-water limit.
+enum LimitOperator {
+  /// No Guideline Value Set (NGVS) — recorded but not pass/fail.
+  NONE
+  /// Result must be <= limitMax (e.g. Fluoride 1.5, Iron 0.3).
+  MAX_INCLUSIVE
+  /// Result must be < limitMax (e.g. Chlorides < 250).
+  MAX_EXCLUSIVE
+  /// Result must be within [limitMin, limitMax] (e.g. pH 6.5–8.5).
+  RANGE
+  /// Result must be 0 / absent / -ve (coliforms, E-coli).
+  EQUALS_ZERO
+  /// Result must match an allowed qualitative token (Colorless, Unobj).
+  QUALITATIVE
+}
+
+enum ResultValueType {
+  NUMERIC
+  BDL
+  QUALITATIVE
+  NEGATIVE
+  POSITIVE
+  TNTC
+}
+
+enum ConformityStatus {
+  SAFE
+  UNSAFE
+}
+
+enum WaterQualityReportStatus {
+  DRAFT
+  SUBMITTED
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum SampleType {
+  SOURCE_WELL
+  POU_TAP
+  OHR
+}
+
+enum ReportCategory {
+  PCRWR
+  BASELINE
+}
+
+enum FormType {
+  PRIORITY
+  FULL
+}
+
+/// Lab-reported water source. New types can be added without a schema change.
+model SourceType {
+  id        String     @id
+  code      String     @unique
+  name      String
+  category  SampleType
+  aliases   String[]   @default([])
+  sortOrder Int        @map("sort_order")
+  isActive  Boolean    @default(true) @map("is_active")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  reports   WaterQualityReport[]
+
+  @@index([category])
+  @@index([isActive, sortOrder])
+  @@map("source_types")
+}
+
+/// Catalog of potable-water parameters with NSDWQ / WHO judgment rules.
+model WaterQualityParameter {
+  id                 String                   @id @default(cuid())
+  code               String                   @unique
+  name               String
+  category           ParameterCategory
+  conformityGroup    ParameterConformityGroup @map("conformity_group")
+  sortOrder          Int                      @map("sort_order")
+  units              String?
+  detectionLimit     Decimal?                 @map("detection_limit") @db.Decimal(18, 6)
+  referenceMethod    String                   @map("reference_method")
+  limitOperator      LimitOperator            @map("limit_operator")
+  limitMin           Decimal?                 @map("limit_min") @db.Decimal(18, 6)
+  limitMax           Decimal?                 @map("limit_max") @db.Decimal(18, 6)
+  limitDisplay       String                   @map("limit_display")
+  qualitativeAllowed String[]                 @default([]) @map("qualitative_allowed")
+  isAccredited       Boolean                  @default(true) @map("is_accredited")
+  limitSource        String                   @map("limit_source")
+  includedInPriority Boolean                  @default(false) @map("included_in_priority")
+  isActive           Boolean                  @default(true) @map("is_active")
+  createdAt          DateTime                 @default(now()) @map("created_at")
+  updatedAt          DateTime                 @updatedAt @map("updated_at")
+
+  results WaterQualityResult[]
+
+  @@index([category])
+  @@index([sortOrder])
+  @@index([includedInPriority])
+  @@map("water_quality_parameters")
+}
+
+/// One PCRWR-style chemical & microbiology test report at a location.
+model WaterQualityReport {
+  id                  String                   @id @default(cuid())
+  reportSerialNo      String                   @map("report_serial_no")
+  nwqlSampleCode      String?                  @unique @map("nwql_sample_code")
+  customerCode        String?                  @map("customer_code")
+  customerName        String                   @map("customer_name")
+  customerAddress     String?                  @map("customer_address")
+  customerPhone       String?                  @map("customer_phone")
+
+  tehsilId            String                   @map("tehsil_id")
+  villageId           String                   @map("village_id")
+  settlementId        String?                  @map("settlement_id")
+  sourceTypeId        String                   @map("source_type_id")
+
+  sampleType          SampleType               @map("sample_type")
+  sourceLabel         String?                  @map("source_label")
+  documentTehsilName  String?                  @map("document_tehsil_name")
+  documentVillageName String?                  @map("document_village_name")
+  siteName            String?                  @map("site_name")
+  reportCategory      ReportCategory           @default(PCRWR) @map("report_category")
+  formType            FormType                 @default(PRIORITY) @map("form_type")
+  workOrder           String?                  @map("work_order")
+  locationDetail      String                   @map("location_detail")
+  gpsLatitude         Decimal?                 @map("gps_latitude") @db.Decimal(10, 7)
+  gpsLongitude        Decimal?                 @map("gps_longitude") @db.Decimal(10, 7)
+
+  samplingAt          DateTime                 @map("sampling_at")
+  receivedAt          DateTime?                @map("received_at")
+  receiptTempC        Decimal?                 @map("receipt_temp_c") @db.Decimal(6, 2)
+  receiptHumidityPct  Decimal?                 @map("receipt_humidity_pct") @db.Decimal(6, 2)
+  analysisFrom        DateTime?                @map("analysis_from")
+  analysisTo          DateTime?                @map("analysis_to")
+  reportingDate       DateTime                 @map("reporting_date")
+  totalPages          Int?                     @map("total_pages")
+
+  physicalConformity  ConformityStatus         @map("physical_conformity")
+  chemicalConformity  ConformityStatus         @map("chemical_conformity")
+  traceConformity     ConformityStatus?        @map("trace_conformity")
+  microbialConformity ConformityStatus         @map("microbial_conformity")
+  overallRemarks      String?                  @map("overall_remarks")
+  termsAgreed         Boolean                  @default(false) @map("terms_agreed")
+  status              WaterQualityReportStatus @default(DRAFT)
+
+  createdById         String?                  @map("created_by_id")
+  submittedById       String?                  @map("submitted_by_id")
+  submittedAt         DateTime?                @map("submitted_at")
+  reviewedById        String?                  @map("reviewed_by_id")
+  reviewedAt          DateTime?                @map("reviewed_at")
+  rejectionReason     String?                  @map("rejection_reason")
+
+  createdAt           DateTime                 @default(now()) @map("created_at")
+  updatedAt           DateTime                 @updatedAt @map("updated_at")
+
+  tehsil     Tehsil                 @relation(fields: [tehsilId], references: [id], onDelete: Restrict)
+  village    Village                @relation(fields: [villageId, tehsilId], references: [id, tehsilId], onDelete: Restrict)
+  settlement Settlement?            @relation(fields: [settlementId, villageId], references: [id, villageId], onDelete: Restrict)
+  sourceType SourceType             @relation(fields: [sourceTypeId], references: [id], onDelete: Restrict)
+  createdBy  User?                  @relation("ReportCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  submittedBy User?                 @relation("ReportSubmitter", fields: [submittedById], references: [id], onDelete: Restrict)
+  reviewedBy User?                  @relation("ReportReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  results    WaterQualityResult[]
+
+  @@index([tehsilId])
+  @@index([villageId])
+  @@index([settlementId])
+  @@index([sourceTypeId])
+  @@index([reportingDate])
+  @@index([reportSerialNo])
+  @@index([sampleType])
+  @@index([reportCategory])
+  @@index([formType])
+  @@index([physicalConformity])
+  @@index([chemicalConformity])
+  @@index([microbialConformity])
+  @@index([status])
+  @@index([createdById])
+  @@index([submittedById])
+  @@map("water_quality_reports")
+}
+
+/// Measured value for one parameter within a report, with snapshot judgment.
+model WaterQualityResult {
+  id               String          @id @default(cuid())
+  reportId         String          @map("report_id")
+  parameterId      String          @map("parameter_id")
+  resultType       ResultValueType @map("result_type")
+  numericValue     Decimal?        @map("numeric_value") @db.Decimal(18, 6)
+  qualitativeValue String?         @map("qualitative_value")
+  uncertainty      String?
+  exceedsLimit     Boolean         @map("exceeds_limit")
+  isJudged         Boolean         @map("is_judged")
+  limitDisplaySnap String          @map("limit_display_snap")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  report    WaterQualityReport    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  parameter WaterQualityParameter @relation(fields: [parameterId], references: [id], onDelete: Restrict)
+
+  @@unique([reportId, parameterId])
+  @@index([parameterId])
+  @@index([exceedsLimit])
+  @@map("water_quality_results")
+}

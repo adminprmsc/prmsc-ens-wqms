@@ -1,0 +1,20 @@
+# Dependencies
+node_modules
+dist
+coverage
+.env
+*.log
+npm-debug.log*
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+
+# OS / IDE
+.DS_Store
+.idea
+.vscode
+
+# Docker
+postgres_data
+wq_postgres_data*
