@@ -78,6 +78,7 @@ services:
       <<: *database_url
       NODE_ENV: production
       PORT: 3000
+      NODE_OPTIONS: --max-old-space-size=384
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
@@ -94,8 +95,8 @@ services:
       test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/api/health || exit 1']
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 20s
+      retries: 8
+      start_period: 45s
     networks:
       - wqms
 

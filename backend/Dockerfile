@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 FROM node:22-alpine AS base
 WORKDIR /app
-# wget: Compose healthchecks; libc6-compat: native modules on Alpine
-RUN apk add --no-cache libc6-compat wget
+# wget: Compose healthchecks; libc6-compat: native modules (e.g. bcrypt) on Alpine
+RUN apk add --no-cache libc6-compat wget openssl
 
 # ── Dependencies (cached layer) ──────────────────────────────────────────────
 FROM base AS deps

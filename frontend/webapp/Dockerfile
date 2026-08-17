@@ -19,7 +19,8 @@ RUN npm run build
 # ── Runtime stage (Nginx serving the SPA + reverse proxy) ────────────────────
 FROM nginx:1.27-alpine AS production
 
-RUN rm /etc/nginx/conf.d/default.conf
+RUN apk add --no-cache wget \
+    && rm /etc/nginx/conf.d/default.conf
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=builder /app/dist /usr/share/nginx/html
