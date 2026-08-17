@@ -111,14 +111,21 @@ make deploy
 
 ## 5. Ops Cheatsheet
 
-| Task              | Command                         |
-| ----------------- | ------------------------------- |
-| Status            | `make ps`                       |
-| Logs              | `make logs` / `make logs-api`   |
-| Migrate only      | `make migrate`                  |
-| DB shell          | `make db-shell`                 |
-| Stop (keep data)  | `make down`                     |
-| Health check      | `make health`                   |
+Run these from the app directory on the VM (`~/wqms`). `make help` lists every target.
+
+| Task                 | Command                                      |
+| -------------------- | -------------------------------------------- |
+| First start          | `make up`                                    |
+| Ongoing deploy       | `make deploy`                                |
+| Status               | `make ps`                                    |
+| Health check         | `make health`                                |
+| Logs                 | `make logs` / `make logs-api` / `make logs-web` |
+| Migrate only         | `make migrate`                               |
+| Re-seed              | `make seed`                                  |
+| DB shell             | `make db-shell`                              |
+| DB backup            | `make db-backup`                             |
+| Stop (keep data)     | `make down`                                  |
+| Reclaim disk         | `make prune`                                 |
 
 ### SSH tunnel to Postgres (admin)
 

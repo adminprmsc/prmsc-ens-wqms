@@ -58,6 +58,8 @@ services:
     environment:
       <<: *database_url
       RUN_SEED: ${RUN_SEED:-true}
+      SYSTEM_ADMIN_EMAIL: ${SYSTEM_ADMIN_EMAIL:-system.admin@prmsc.gov.pk}
+      SYSTEM_ADMIN_PASSWORD: ${SYSTEM_ADMIN_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,7 +78,12 @@ services:
       <<: *database_url
       NODE_ENV: production
       PORT: 3000
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
+      UPLOAD_ROOT: ${UPLOAD_ROOT:-/app/uploads}
+    volumes:
+      - uploads_data:/app/uploads
     # No published ports — only the edge proxy can reach the API.
     expose:
       - '3000'
@@ -124,3 +131,5 @@ networks:
 volumes:
   postgres_data:
     name: wqms_postgres_data
+  uploads_data:
+    name: wqms_uploads_data

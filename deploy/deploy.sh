@@ -40,7 +40,8 @@ fi
 
 # 3. Build images ──────────────────────────────────────────────────────────────
 log "Building images..."
-$COMPOSE build
+export COMPOSE_PARALLEL_LIMIT="${COMPOSE_PARALLEL_LIMIT:-1}"
+$COMPOSE build --progress=plain
 
 # 4. Run migrations (one-shot, must succeed before API starts) ─────────────────
 log "Applying database migrations..."
