@@ -59,8 +59,28 @@ export function isoToDatetimeLocal(value: string | null | undefined) {
 
 export function newReportSerial() {
   const year = new Date().getFullYear()
-  const token = crypto.randomUUID().replaceAll('-', '').slice(0, 8).toUpperCase()
+  const token = randomToken(8)
   return `WQ-${year}-${token}`
+}
+
+/** `crypto.randomUUID` is HTTPS-only; production currently serves plain HTTP. */
+function randomToken(length: number) {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID().replaceAll('-', '').slice(0, length).toUpperCase()
+  }
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const bytes = new Uint8Array(Math.ceil(length / 2))
+    crypto.getRandomValues(bytes)
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0'))
+      .join('')
+      .slice(0, length)
+      .toUpperCase()
+  }
+  return Math.random()
+    .toString(16)
+    .slice(2, 2 + length)
+    .toUpperCase()
+    .padEnd(length, '0')
 }
 
 export function parseParameterInput(raw: string) {
