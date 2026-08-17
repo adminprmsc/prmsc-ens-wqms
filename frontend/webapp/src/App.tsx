@@ -13,6 +13,7 @@ import { AdminUsersPage } from '@/pages/admin/admin-users-page'
 import { LoginPage } from '@/pages/login-page'
 import { ManagerOperationsPage } from '@/pages/manager/manager-operations-page'
 import { ManagerOverviewPage } from '@/pages/manager/manager-overview-page'
+import { ManagerReportReviewPage } from '@/pages/manager/manager-report-review-page'
 import { ManagerReportsPage } from '@/pages/manager/manager-reports-page'
 import { PcrwrFieldDataPage } from '@/pages/pcrwr/pcrwr-field-data-page'
 import { PcrwrOverviewPage } from '@/pages/pcrwr/pcrwr-overview-page'
@@ -43,6 +44,10 @@ export default function App() {
               <Route index element={<ManagerOverviewPage />} />
               <Route path="operations" element={<ManagerOperationsPage />} />
               <Route path="reports" element={<ManagerReportsPage />} />
+              <Route
+                path="reports/:reportId"
+                element={<ManagerReportReviewPage />}
+              />
             </Route>
           </Route>
 

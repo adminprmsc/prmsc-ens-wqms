@@ -1,4 +1,4 @@
-import { apiRequest, apiUpload } from '@/lib/api'
+import { ApiError, apiRequest, apiUpload, getAccessToken } from '@/lib/api'
 import type { WaterQualityReportInput } from '@/lib/water-quality-schema'
 
 export type WaterQualityParameter = {
@@ -112,9 +112,156 @@ export function listReports(params?: Record<string, string | undefined>) {
     if (value) query.set(key, value)
   }
   const qs = query.toString()
-  return apiRequest<WaterQualityReportSummary[]>(
+  return apiRequest<ReportListResponse>(
     `/water-quality/reports${qs ? `?${qs}` : ''}`,
   )
+}
+
+export type ReportListResponse = {
+  items: WaterQualityReportSummary[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export type RiskBand = 'CRITICAL' | 'HIGH' | 'WATCH' | 'STABLE' | 'NONE'
+
+export type PlaceAnalyticsRow = {
+  reports: number
+  unsafe: number
+  safe: number
+  unsafeRate: number
+  band: RiskBand
+  unsafeMicrobial: number
+}
+
+export type ReportAnalytics = {
+  totals: {
+    pendingReview: number
+    approved: number
+    rejected: number
+    unsafe: number
+    safe: number
+    unsafePhysical: number
+    unsafeChemical: number
+    unsafeTrace: number
+    unsafeMicrobial: number
+    unsafeRate: number
+    tehsilsCovered: number
+    villagesCovered: number
+    tehsilsInMaster: number
+    coverageRate: number
+  }
+  brief: {
+    stance: 'CRITICAL' | 'HIGH' | 'WATCH' | 'STABLE' | 'INSUFFICIENT'
+    headline: string
+    actions: string[]
+    coverageNote: string
+  }
+  hazards: Array<{ name: string; unsafe: number }>
+  byTehsil: Array<
+    PlaceAnalyticsRow & {
+      tehsilId: string
+      tehsilName: string
+      unsafeChemical: number
+      unsafePhysical: number
+    }
+  >
+  byVillage: Array<
+    PlaceAnalyticsRow & {
+      villageId: string
+      villageName: string
+      tehsilId: string
+      tehsilName: string
+      unsafeChemical: number
+      unsafePhysical: number
+    }
+  >
+  bySource: Array<{
+    name: string
+    reports: number
+    unsafe: number
+    safe: number
+    unsafeRate: number
+    band: RiskBand
+  }>
+  byMonth: Array<{
+    period: string
+    approved: number
+    unsafe: number
+    safe: number
+    cumulativeApproved: number
+    cumulativeUnsafe: number
+    cumulativeSafe: number
+  }>
+  alerts: Array<{
+    tehsilId: string
+    villageId: string
+    tehsilName: string
+    villageName: string
+    unsafe: number
+    unsafeMicrobial: number
+    reports: number
+    band: RiskBand
+    message: string
+  }>
+  recentApproved: Array<{
+    id: string
+    reportSerialNo: string
+    reportingDate: string
+    tehsilName: string
+    villageName: string
+    unsafe: boolean
+    microbialConformity: string
+    physicalConformity: string
+    chemicalConformity: string
+  }>
+}
+
+export function fetchReportAnalytics(params?: Record<string, string | undefined>) {
+  const query = new URLSearchParams()
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (value) query.set(key, value)
+  }
+  const qs = query.toString()
+  return apiRequest<ReportAnalytics>(
+    `/water-quality/reports/analytics${qs ? `?${qs}` : ''}`,
+  )
+}
+
+export async function downloadApprovedReportsCsv(
+  params?: Record<string, string | undefined>,
+) {
+  const query = new URLSearchParams()
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (value) query.set(key, value)
+  }
+  const qs = query.toString()
+  const token = getAccessToken()
+  const response = await fetch(
+    `/api/water-quality/reports/export${qs ? `?${qs}` : ''}`,
+    {
+      headers: {
+        Accept: 'text/csv',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    },
+  )
+  if (!response.ok) {
+    throw new ApiError('Unable to export approved reports', response.status)
+  }
+  const blob = await response.blob()
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download =
+    params?.view === 'summary'
+      ? 'wqms-accumulative-summary.csv'
+      : 'wqms-approved-reports.csv'
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
 }
 
 export function getReport(id: string) {

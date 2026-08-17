@@ -3,14 +3,17 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Param,
   Patch,
   Post,
   Query,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 import { ParseLabDocumentUseCase } from '../../application/water-quality/parse-lab-document.use-case';
 import { WaterQualityReportsUseCase } from '../../application/water-quality/water-quality-reports.use-case';
 import { UserRole } from '../../domain/user/user';
@@ -45,6 +48,7 @@ export class WaterQualityController {
     @Query('tehsilId') tehsilId?: string,
     @Query('villageId') villageId?: string,
     @Query('settlementId') settlementId?: string,
+    @Query('serial') serial?: string,
     @Query('status')
     status?: 'DRAFT' | 'SUBMITTED' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED',
     @Query('sampleType') sampleType?: 'SOURCE_WELL' | 'POU_TAP' | 'OHR',
@@ -53,6 +57,8 @@ export class WaterQualityController {
     @Query('formType') formType?: 'PRIORITY' | 'FULL',
     @Query('chemicalConformity') chemicalConformity?: 'SAFE' | 'UNSAFE',
     @Query('microbialConformity') microbialConformity?: 'SAFE' | 'UNSAFE',
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
   ) {
     return this.reports.listReports(
       { id: user.id, role: user.role },
@@ -60,6 +66,7 @@ export class WaterQualityController {
         tehsilId,
         villageId,
         settlementId,
+        serial,
         status,
         sampleType,
         sourceTypeId,
@@ -67,8 +74,48 @@ export class WaterQualityController {
         formType,
         chemicalConformity,
         microbialConformity,
+        page: page ? Number(page) : undefined,
+        pageSize: pageSize ? Number(pageSize) : undefined,
       },
     );
+  }
+
+  @Get('reports/analytics')
+  @Roles(UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN)
+  analytics(
+    @CurrentUser() user: AuthUser,
+    @Query('tehsilId') tehsilId?: string,
+    @Query('villageId') villageId?: string,
+    @Query('settlementId') settlementId?: string,
+  ) {
+    return this.reports.analytics(
+      { id: user.id, role: user.role },
+      { tehsilId, villageId, settlementId },
+    );
+  }
+
+  @Get('reports/export')
+  @Roles(UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN)
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  async exportApproved(
+    @CurrentUser() user: AuthUser,
+    @Res() res: Response,
+    @Query('tehsilId') tehsilId?: string,
+    @Query('villageId') villageId?: string,
+    @Query('settlementId') settlementId?: string,
+    @Query('serial') serial?: string,
+    @Query('view') view?: 'samples' | 'summary',
+  ) {
+    const csv = await this.reports.exportApprovedCsv(
+      { id: user.id, role: user.role },
+      { tehsilId, villageId, settlementId, serial, view },
+    );
+    const filename =
+      view === 'summary'
+        ? 'wqms-accumulative-summary.csv'
+        : 'wqms-approved-reports.csv';
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csv);
   }
 
   @Get('reports/:id')

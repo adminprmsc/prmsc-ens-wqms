@@ -67,6 +67,51 @@ function decimalToNumber(
   return typeof value === 'number' ? value : Number(value);
 }
 
+function csvCell(value: string | number | boolean | null | undefined) {
+  let text = '';
+  if (typeof value === 'string') text = value;
+  else if (typeof value === 'number' || typeof value === 'boolean') {
+    text = value.toString();
+  }
+  if (/[",\n\r]/.test(text)) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+  return text;
+}
+
+function unsafeRate(unsafe: number, reports: number) {
+  if (reports <= 0) return 0;
+  return Math.round((unsafe / reports) * 100);
+}
+
+function riskBand(input: {
+  reports: number;
+  unsafe: number;
+  unsafeMicrobial: number;
+}) {
+  if (input.reports === 0) return 'NONE' as const;
+  if (input.unsafeMicrobial > 0) return 'CRITICAL' as const;
+  if (input.unsafe / input.reports >= 0.5) return 'HIGH' as const;
+  if (input.unsafe > 0) return 'WATCH' as const;
+  return 'STABLE' as const;
+}
+
+type ReportListFilter = {
+  tehsilId?: string;
+  villageId?: string;
+  settlementId?: string;
+  serial?: string;
+  status?: 'DRAFT' | 'SUBMITTED' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
+  sampleType?: 'SOURCE_WELL' | 'POU_TAP' | 'OHR';
+  sourceTypeId?: string;
+  reportCategory?: 'PCRWR' | 'BASELINE';
+  formType?: 'PRIORITY' | 'FULL';
+  chemicalConformity?: 'SAFE' | 'UNSAFE';
+  microbialConformity?: 'SAFE' | 'UNSAFE';
+  page?: number;
+  pageSize?: number;
+};
+
 @Injectable()
 export class WaterQualityReportsUseCase {
   constructor(private readonly prisma: PrismaService) {}
@@ -88,48 +133,478 @@ export class WaterQualityReportsUseCase {
     });
   }
 
-  async listReports(
+  async listReports(actor: ReportActor, filter?: ReportListFilter) {
+    const rawPage = filter?.page ?? 1;
+    const rawSize = filter?.pageSize ?? 20;
+    const page =
+      Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
+    const pageSize =
+      Number.isFinite(rawSize) && rawSize > 0
+        ? Math.min(100, Math.floor(rawSize))
+        : 20;
+    const where = this.listWhere(actor, filter);
+
+    const [items, total] = await Promise.all([
+      this.prisma.waterQualityReport.findMany({
+        where,
+        include: {
+          tehsil: { select: { id: true, name: true } },
+          village: { select: { id: true, name: true } },
+          settlement: { select: { id: true, name: true } },
+          sourceType: {
+            select: { id: true, code: true, name: true, category: true },
+          },
+          createdBy: { select: { id: true, name: true, email: true } },
+          _count: { select: { results: true } },
+        },
+        orderBy: { reportingDate: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.waterQualityReport.count({ where }),
+    ]);
+
+    return { items, total, page, pageSize };
+  }
+
+  async analytics(
     actor: ReportActor,
     filter?: {
       tehsilId?: string;
       villageId?: string;
       settlementId?: string;
-      status?:
-        'DRAFT' | 'SUBMITTED' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
-      sampleType?: 'SOURCE_WELL' | 'POU_TAP' | 'OHR';
-      sourceTypeId?: string;
-      reportCategory?: 'PCRWR' | 'BASELINE';
-      formType?: 'PRIORITY' | 'FULL';
-      chemicalConformity?: 'SAFE' | 'UNSAFE';
-      microbialConformity?: 'SAFE' | 'UNSAFE';
     },
   ) {
-    return this.prisma.waterQualityReport.findMany({
-      where: {
-        ...this.visibilityWhere(actor),
-        tehsilId: filter?.tehsilId,
-        villageId: filter?.villageId,
-        settlementId: filter?.settlementId,
-        status: filter?.status,
-        sampleType: filter?.sampleType,
-        sourceTypeId: filter?.sourceTypeId,
-        reportCategory: filter?.reportCategory,
-        formType: filter?.formType,
-        chemicalConformity: filter?.chemicalConformity,
-        microbialConformity: filter?.microbialConformity,
-      },
-      include: {
-        tehsil: { select: { id: true, name: true } },
-        village: { select: { id: true, name: true } },
-        settlement: { select: { id: true, name: true } },
-        sourceType: {
-          select: { id: true, code: true, name: true, category: true },
+    this.assertReviewer(actor);
+    const visible = {
+      ...this.visibilityWhere(actor),
+      tehsilId: filter?.tehsilId,
+      villageId: filter?.villageId,
+      settlementId: filter?.settlementId,
+    };
+
+    const [statusGroups, approved, tehsilCount] = await Promise.all([
+      this.prisma.waterQualityReport.groupBy({
+        by: ['status'],
+        where: visible,
+        _count: { _all: true },
+      }),
+      this.prisma.waterQualityReport.findMany({
+        where: { ...visible, status: 'APPROVED' },
+        select: {
+          id: true,
+          reportSerialNo: true,
+          reportingDate: true,
+          physicalConformity: true,
+          chemicalConformity: true,
+          traceConformity: true,
+          microbialConformity: true,
+          sampleType: true,
+          tehsil: { select: { id: true, name: true } },
+          village: { select: { id: true, name: true } },
+          settlement: { select: { id: true, name: true } },
+          sourceType: { select: { id: true, name: true } },
         },
-        createdBy: { select: { id: true, name: true, email: true } },
-        _count: { select: { results: true } },
+        orderBy: { reportingDate: 'desc' },
+      }),
+      this.prisma.tehsil.count(),
+    ]);
+
+    const statusCount = (status: string) =>
+      statusGroups.find((row) => row.status === status)?._count._all ?? 0;
+
+    const isUnsafe = (row: (typeof approved)[number]) =>
+      row.physicalConformity === 'UNSAFE' ||
+      row.chemicalConformity === 'UNSAFE' ||
+      row.traceConformity === 'UNSAFE' ||
+      row.microbialConformity === 'UNSAFE';
+
+    const byTehsilMap = new Map<
+      string,
+      {
+        tehsilId: string;
+        tehsilName: string;
+        reports: number;
+        unsafe: number;
+        unsafeMicrobial: number;
+        unsafeChemical: number;
+        unsafePhysical: number;
+      }
+    >();
+    const byVillageMap = new Map<
+      string,
+      {
+        villageId: string;
+        villageName: string;
+        tehsilId: string;
+        tehsilName: string;
+        reports: number;
+        unsafe: number;
+        unsafeMicrobial: number;
+        unsafeChemical: number;
+        unsafePhysical: number;
+      }
+    >();
+    const bySourceMap = new Map<
+      string,
+      { name: string; reports: number; unsafe: number }
+    >();
+    const byMonthMap = new Map<
+      string,
+      { period: string; approved: number; unsafe: number }
+    >();
+
+    for (const row of approved) {
+      const unsafe = isUnsafe(row);
+      const tehsil = byTehsilMap.get(row.tehsil.id) ?? {
+        tehsilId: row.tehsil.id,
+        tehsilName: row.tehsil.name,
+        reports: 0,
+        unsafe: 0,
+        unsafeMicrobial: 0,
+        unsafeChemical: 0,
+        unsafePhysical: 0,
+      };
+      tehsil.reports += 1;
+      if (unsafe) tehsil.unsafe += 1;
+      if (row.microbialConformity === 'UNSAFE') tehsil.unsafeMicrobial += 1;
+      if (row.chemicalConformity === 'UNSAFE') tehsil.unsafeChemical += 1;
+      if (row.physicalConformity === 'UNSAFE') tehsil.unsafePhysical += 1;
+      byTehsilMap.set(row.tehsil.id, tehsil);
+
+      const village = byVillageMap.get(row.village.id) ?? {
+        villageId: row.village.id,
+        villageName: row.village.name,
+        tehsilId: row.tehsil.id,
+        tehsilName: row.tehsil.name,
+        reports: 0,
+        unsafe: 0,
+        unsafeMicrobial: 0,
+        unsafeChemical: 0,
+        unsafePhysical: 0,
+      };
+      village.reports += 1;
+      if (unsafe) village.unsafe += 1;
+      if (row.microbialConformity === 'UNSAFE') village.unsafeMicrobial += 1;
+      if (row.chemicalConformity === 'UNSAFE') village.unsafeChemical += 1;
+      if (row.physicalConformity === 'UNSAFE') village.unsafePhysical += 1;
+      byVillageMap.set(row.village.id, village);
+
+      const sourceName = row.sourceType?.name ?? row.sampleType;
+      const source = bySourceMap.get(sourceName) ?? {
+        name: sourceName,
+        reports: 0,
+        unsafe: 0,
+      };
+      source.reports += 1;
+      if (unsafe) source.unsafe += 1;
+      bySourceMap.set(sourceName, source);
+
+      const period = row.reportingDate.toISOString().slice(0, 7);
+      const month = byMonthMap.get(period) ?? {
+        period,
+        approved: 0,
+        unsafe: 0,
+      };
+      month.approved += 1;
+      if (unsafe) month.unsafe += 1;
+      byMonthMap.set(period, month);
+    }
+
+    const decorate = <
+      T extends {
+        reports: number;
+        unsafe: number;
+        unsafeMicrobial: number;
       },
-      orderBy: { reportingDate: 'desc' },
+    >(
+      row: T,
+    ) => ({
+      ...row,
+      safe: Math.max(0, row.reports - row.unsafe),
+      unsafeRate: unsafeRate(row.unsafe, row.reports),
+      band: riskBand(row),
     });
+
+    const byTehsil = [...byTehsilMap.values()]
+      .map(decorate)
+      .sort(
+        (left, right) =>
+          right.unsafe - left.unsafe || right.reports - left.reports,
+      );
+    const byVillage = [...byVillageMap.values()]
+      .map(decorate)
+      .sort(
+        (left, right) =>
+          right.unsafe - left.unsafe ||
+          right.unsafeMicrobial - left.unsafeMicrobial ||
+          right.reports - left.reports,
+      );
+
+    const unsafeCount = approved.filter(isUnsafe).length;
+    const safeCount = approved.length - unsafeCount;
+    const unsafePhysical = approved.filter(
+      (row) => row.physicalConformity === 'UNSAFE',
+    ).length;
+    const unsafeChemical = approved.filter(
+      (row) => row.chemicalConformity === 'UNSAFE',
+    ).length;
+    const unsafeTrace = approved.filter(
+      (row) => row.traceConformity === 'UNSAFE',
+    ).length;
+    const unsafeMicrobial = approved.filter(
+      (row) => row.microbialConformity === 'UNSAFE',
+    ).length;
+
+    let cumulativeApproved = 0;
+    let cumulativeUnsafe = 0;
+    const byMonth = [...byMonthMap.values()]
+      .sort((left, right) => left.period.localeCompare(right.period))
+      .map((row) => {
+        cumulativeApproved += row.approved;
+        cumulativeUnsafe += row.unsafe;
+        return {
+          ...row,
+          safe: Math.max(0, row.approved - row.unsafe),
+          cumulativeApproved,
+          cumulativeUnsafe,
+          cumulativeSafe: Math.max(0, cumulativeApproved - cumulativeUnsafe),
+        };
+      });
+
+    const criticalVillages = byVillage.filter((row) => row.band === 'CRITICAL');
+    const watchVillages = byVillage.filter(
+      (row) => row.band === 'HIGH' || row.band === 'WATCH',
+    );
+    const stance =
+      approved.length === 0
+        ? ('INSUFFICIENT' as const)
+        : unsafeMicrobial > 0
+          ? ('CRITICAL' as const)
+          : unsafeCount / approved.length >= 0.5
+            ? ('HIGH' as const)
+            : unsafeCount > 0
+              ? ('WATCH' as const)
+              : ('STABLE' as const);
+
+    const actions: string[] = [];
+    if (approved.length === 0) {
+      actions.push(
+        'Approve pending laboratory submissions so tehsil and village decisions rest on locked evidence.',
+      );
+    }
+    if (unsafeMicrobial > 0) {
+      actions.push(
+        `Treat ${criticalVillages.length || unsafeMicrobial} microbial-failure location${criticalVillages.length === 1 ? '' : 's'} as not potable until resampling and disinfection are confirmed.`,
+      );
+    }
+    if (unsafeChemical > 0) {
+      actions.push(
+        'Review chemical exceedances (fluoride, nitrate, TDS, metals) before recommending household use.',
+      );
+    }
+    if (watchVillages.length > 0 && stance !== 'CRITICAL') {
+      actions.push(
+        `Keep ${watchVillages.length} village${watchVillages.length === 1 ? '' : 's'} on a watch list and increase sampling frequency.`,
+      );
+    }
+    if (statusCount('PENDING_REVIEW') + statusCount('SUBMITTED') > 0) {
+      actions.push(
+        `Clear ${statusCount('PENDING_REVIEW') + statusCount('SUBMITTED')} report${statusCount('PENDING_REVIEW') + statusCount('SUBMITTED') === 1 ? '' : 's'} still in the review queue so monitoring stays current.`,
+      );
+    }
+    if (actions.length === 0) {
+      actions.push(
+        'Approved samples in this filter meet NSDWQ groups. Maintain routine surveillance sampling.',
+      );
+    }
+
+    const headline =
+      stance === 'INSUFFICIENT'
+        ? 'Not enough approved evidence to score this place yet.'
+        : stance === 'CRITICAL'
+          ? 'Microbial failure is present. Do not treat these sources as potable.'
+          : stance === 'HIGH'
+            ? 'Most approved samples in this filter fail at least one NSDWQ group.'
+            : stance === 'WATCH'
+              ? 'Some approved samples fail NSDWQ. Target those villages first.'
+              : 'Approved samples in this filter are currently potable against NSDWQ groups.';
+
+    return {
+      totals: {
+        pendingReview: statusCount('PENDING_REVIEW') + statusCount('SUBMITTED'),
+        approved: approved.length,
+        rejected: statusCount('REJECTED'),
+        unsafe: unsafeCount,
+        safe: safeCount,
+        unsafePhysical,
+        unsafeChemical,
+        unsafeTrace,
+        unsafeMicrobial,
+        unsafeRate: unsafeRate(unsafeCount, approved.length),
+        tehsilsCovered: byTehsil.length,
+        villagesCovered: byVillage.length,
+        tehsilsInMaster: tehsilCount,
+        coverageRate: unsafeRate(byTehsil.length, tehsilCount),
+      },
+      brief: {
+        stance,
+        headline,
+        actions,
+        coverageNote: filter?.tehsilId
+          ? `${byVillage.length} village${byVillage.length === 1 ? '' : 's'} have approved samples in this tehsil.`
+          : `${byTehsil.length} of ${tehsilCount} tehsils have at least one approved sample.`,
+      },
+      hazards: [
+        { name: 'Physical', unsafe: unsafePhysical },
+        { name: 'Chemical', unsafe: unsafeChemical },
+        { name: 'Trace', unsafe: unsafeTrace },
+        { name: 'Microbial', unsafe: unsafeMicrobial },
+      ],
+      byTehsil,
+      byVillage,
+      bySource: [...bySourceMap.values()]
+        .map((row) => ({
+          ...row,
+          safe: Math.max(0, row.reports - row.unsafe),
+          unsafeRate: unsafeRate(row.unsafe, row.reports),
+          band: riskBand({ ...row, unsafeMicrobial: 0 }),
+        }))
+        .sort((left, right) => right.reports - left.reports),
+      byMonth,
+      alerts: byVillage
+        .filter((row) => row.band === 'CRITICAL' || row.band === 'HIGH')
+        .slice(0, 8)
+        .map((row) => ({
+          tehsilId: row.tehsilId,
+          villageId: row.villageId,
+          tehsilName: row.tehsilName,
+          villageName: row.villageName,
+          unsafe: row.unsafe,
+          unsafeMicrobial: row.unsafeMicrobial,
+          reports: row.reports,
+          band: row.band,
+          message:
+            row.band === 'CRITICAL'
+              ? `${row.villageName} (${row.tehsilName}) — microbial failure on ${row.unsafeMicrobial} of ${row.reports} approved sample${row.reports === 1 ? '' : 's'}.`
+              : `${row.villageName} (${row.tehsilName}) — ${row.unsafeRate}% of approved samples are unsafe.`,
+        })),
+      recentApproved: approved.slice(0, 8).map((row) => ({
+        id: row.id,
+        reportSerialNo: row.reportSerialNo,
+        reportingDate: row.reportingDate,
+        tehsilName: row.tehsil.name,
+        villageName: row.village.name,
+        unsafe: isUnsafe(row),
+        microbialConformity: row.microbialConformity,
+        physicalConformity: row.physicalConformity,
+        chemicalConformity: row.chemicalConformity,
+      })),
+    };
+  }
+
+  async exportApprovedCsv(
+    actor: ReportActor,
+    filter?: {
+      tehsilId?: string;
+      villageId?: string;
+      settlementId?: string;
+      serial?: string;
+      view?: 'samples' | 'summary';
+    },
+  ) {
+    this.assertReviewer(actor);
+    if (filter?.view === 'summary') {
+      const analytics = await this.analytics(actor, filter);
+      const header = [
+        'Tehsil',
+        'Village',
+        'Approved',
+        'Safe',
+        'Unsafe',
+        'Unsafe %',
+        'Physical unsafe',
+        'Chemical unsafe',
+        'Microbial unsafe',
+        'Risk band',
+      ];
+      return [
+        header.join(','),
+        ...analytics.byVillage.map((row) =>
+          [
+            row.tehsilName,
+            row.villageName,
+            row.reports,
+            row.safe,
+            row.unsafe,
+            row.unsafeRate,
+            row.unsafePhysical,
+            row.unsafeChemical,
+            row.unsafeMicrobial,
+            row.band,
+          ]
+            .map(csvCell)
+            .join(','),
+        ),
+      ].join('\n');
+    }
+    const rows = await this.prisma.waterQualityReport.findMany({
+      where: this.listWhere(actor, { ...filter, status: 'APPROVED' }),
+      include: {
+        tehsil: { select: { name: true } },
+        village: { select: { name: true } },
+        settlement: { select: { name: true } },
+        sourceType: { select: { name: true } },
+        createdBy: { select: { name: true, email: true } },
+      },
+      orderBy: [
+        { tehsil: { name: 'asc' } },
+        { village: { name: 'asc' } },
+        { reportingDate: 'desc' },
+      ],
+    });
+
+    const header = [
+      'Serial',
+      'NWQL sample',
+      'Tehsil',
+      'Village',
+      'Settlement',
+      'Site',
+      'Source',
+      'Sampled',
+      'Reported',
+      'Physical',
+      'Chemical',
+      'Trace',
+      'Microbial',
+      'Overall remarks',
+      'Analyst',
+    ];
+    return [
+      header.join(','),
+      ...rows.map((row) =>
+        [
+          row.reportSerialNo,
+          row.nwqlSampleCode,
+          row.tehsil.name,
+          row.village.name,
+          row.settlement?.name,
+          row.siteName,
+          row.sourceType?.name ?? row.sampleType,
+          row.samplingAt.toISOString().slice(0, 10),
+          row.reportingDate.toISOString().slice(0, 10),
+          row.physicalConformity,
+          row.chemicalConformity,
+          row.traceConformity,
+          row.microbialConformity,
+          row.overallRemarks,
+          row.createdBy?.name,
+        ]
+          .map(csvCell)
+          .join(','),
+      ),
+    ].join('\n');
   }
 
   async getReport(id: string, actor: ReportActor) {
@@ -553,6 +1028,42 @@ export class WaterQualityReportsUseCase {
     }
     return {
       OR: [{ createdById: actor.id }, { status: 'APPROVED' }],
+    };
+  }
+
+  private listWhere(
+    actor: ReportActor,
+    filter?: ReportListFilter,
+  ): Prisma.WaterQualityReportWhereInput {
+    const serial = filter?.serial?.trim();
+    return {
+      AND: [
+        this.visibilityWhere(actor),
+        {
+          tehsilId: filter?.tehsilId,
+          villageId: filter?.villageId,
+          settlementId: filter?.settlementId,
+          status: filter?.status,
+          sampleType: filter?.sampleType,
+          sourceTypeId: filter?.sourceTypeId,
+          reportCategory: filter?.reportCategory,
+          formType: filter?.formType,
+          chemicalConformity: filter?.chemicalConformity,
+          microbialConformity: filter?.microbialConformity,
+        },
+        serial
+          ? {
+              OR: [
+                {
+                  reportSerialNo: { contains: serial, mode: 'insensitive' },
+                },
+                {
+                  nwqlSampleCode: { contains: serial, mode: 'insensitive' },
+                },
+              ],
+            }
+          : {},
+      ],
     };
   }
 

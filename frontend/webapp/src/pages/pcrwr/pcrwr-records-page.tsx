@@ -103,8 +103,10 @@ export function PcrwrRecordsPage() {
     try {
       const data = await listReports({
         status: status === 'ALL' ? undefined : status,
+        page: '1',
+        pageSize: '50',
       })
-      setRows(data)
+      setRows(data.items)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Unable to load records')
     } finally {

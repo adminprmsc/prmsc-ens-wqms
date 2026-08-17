@@ -32,17 +32,17 @@ export function PcrwrOverviewPage() {
   useEffect(() => {
     let cancelled = false
     Promise.all([
-      listReports({ status: 'DRAFT' }),
-      listReports({ status: 'PENDING_REVIEW' }),
-      listReports({ status: 'APPROVED' }),
-      listReports(),
+      listReports({ status: 'DRAFT', pageSize: '1' }),
+      listReports({ status: 'PENDING_REVIEW', pageSize: '1' }),
+      listReports({ status: 'APPROVED', pageSize: '1' }),
+      listReports({ pageSize: '6' }),
     ])
-      .then(([draftRows, pendingRows, approvedRows, allRows]) => {
+      .then(([draftRows, pendingRows, approvedRows, recentRows]) => {
         if (cancelled) return
-        setDrafts(draftRows.length)
-        setPending(pendingRows.length)
-        setApproved(approvedRows.length)
-        setRecent(allRows.slice(0, 6))
+        setDrafts(draftRows.total)
+        setPending(pendingRows.total)
+        setApproved(approvedRows.total)
+        setRecent(recentRows.items)
       })
       .catch(() => {
         if (!cancelled) {

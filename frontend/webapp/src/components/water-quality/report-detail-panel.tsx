@@ -18,6 +18,7 @@ import {
   formatReportDate,
 } from '@/lib/water-quality-labels'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/auth/auth-context'
 import {
   isEditableReportStatus,
   pcrwrEditReportPath,
@@ -35,6 +36,8 @@ export function ReportDetailPanel({
 }: {
   report: WaterQualityReportDetail
 }) {
+  const { hasRole } = useAuth()
+  const canEdit = hasRole('USER') && isEditableReportStatus(report.status)
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2">
@@ -42,7 +45,7 @@ export function ReportDetailPanel({
         <span className="text-sm text-muted-foreground">
           {report.reportSerialNo}
         </span>
-        {isEditableReportStatus(report.status) ? (
+        {canEdit ? (
           <Link
             to={pcrwrEditReportPath(report.id)}
             className={buttonVariants({ variant: 'outline', size: 'sm' })}

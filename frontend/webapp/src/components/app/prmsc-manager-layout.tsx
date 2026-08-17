@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, ClipboardCheck, LayoutDashboard } from 'lucide-react'
+import { Activity, ClipboardCheck, LayoutDashboard } from 'lucide-react'
 
 import { PortalShell } from '@/components/app/portal-shell'
 
@@ -11,9 +11,9 @@ const navItems = [
   },
   {
     path: '/manager/operations',
-    label: 'Operations',
-    description: 'Oversee PRMSC water-quality operations',
-    icon: BriefcaseBusiness,
+    label: 'Monitoring',
+    description: 'Approved evidence, tehsil risk, and accumulative extracts',
+    icon: Activity,
   },
   {
     path: '/manager/reports',
@@ -30,7 +30,7 @@ export function PrmscManagerLayout() {
       brandSubtitle="PRMSC Manager"
       navSectionLabel="PRMSC Operations"
       orgLabel="PRMSC-HO"
-      badgeIcon={BriefcaseBusiness}
+      badgeIcon={Activity}
       navItems={navItems}
     />
   )

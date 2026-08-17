@@ -21,6 +21,7 @@ type LocationPickerProps = {
   placeholder: string
   searchPlaceholder?: string
   disabled?: boolean
+  emptyLabel?: string
 }
 
 export function LocationPicker({
@@ -30,9 +31,11 @@ export function LocationPicker({
   placeholder,
   searchPlaceholder = 'Search by name',
   disabled,
+  emptyLabel,
 }: LocationPickerProps) {
   const [query, setQuery] = useState('')
   const showSearch = options.length > 8
+  const selectValue = value || (emptyLabel ? '__all__' : null)
 
   const filtered = useMemo(() => {
     const needle = query.trim()
@@ -53,14 +56,18 @@ export function LocationPicker({
 
   return (
     <Select
-      value={value || null}
+      value={selectValue}
       disabled={disabled}
-      items={options.map((option) => ({
-        value: option.id,
-        label: option.name,
-      }))}
+      items={[
+        ...(emptyLabel ? [{ value: '__all__', label: emptyLabel }] : []),
+        ...options.map((option) => ({
+          value: option.id,
+          label: option.name,
+        })),
+      ]}
       onValueChange={(next) => {
-        if (next) onChange(String(next))
+        if (!next || next === '__all__') onChange('')
+        else onChange(String(next))
       }}
       onOpenChange={(open) => {
         if (!open) setQuery('')
@@ -83,6 +90,9 @@ export function LocationPicker({
               autoComplete="off"
             />
           </div>
+        ) : null}
+        {emptyLabel ? (
+          <SelectItem value="__all__">{emptyLabel}</SelectItem>
         ) : null}
         {filtered.length === 0 ? (
           <p className="px-2 py-3 text-sm text-muted-foreground">
