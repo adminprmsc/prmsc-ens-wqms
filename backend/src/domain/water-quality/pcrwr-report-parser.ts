@@ -143,6 +143,19 @@ function labeledValue(text: string, label: string): string | null {
   return value;
 }
 
+function isPlausibleSourceLabel(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > 80) return false;
+  if (
+    /www\.|https?:|ministry|government of pakistan|islamabad|khayban|pcrwr\.gov/i.test(
+      trimmed,
+    )
+  ) {
+    return false;
+  }
+  return true;
+}
+
 function parsePakistaniDate(raw: string | null): string | null {
   if (!raw) return null;
   const match = raw.match(
@@ -306,8 +319,10 @@ function extractHeaderFields(text: string, fileName?: string) {
     pairValue(pairs, 'Village Name', 'Village') ??
     labeledValue(text, 'Village Name') ??
     labeledValue(text, 'Village');
-  const sourceLabel =
+  const sourceRaw =
     pairValue(pairs, 'Source') ?? labeledValue(text, 'Source');
+  const sourceLabel =
+    sourceRaw && isPlausibleSourceLabel(sourceRaw) ? sourceRaw : null;
   const totalPages = parseNumber(
     pairValue(pairs, 'Total No of Pages') ??
       labeledValue(text, 'Total No of Pages'),

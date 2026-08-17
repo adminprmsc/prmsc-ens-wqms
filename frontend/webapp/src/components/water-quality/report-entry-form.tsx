@@ -80,10 +80,7 @@ import {
   newReportSerial,
   parseParameterInput,
 } from '@/lib/water-quality-labels'
-import {
-  waterQualityReportSchema,
-  type WaterQualityReportInput,
-} from '@/lib/water-quality-schema'
+import type { WaterQualityReportInput } from '@/lib/water-quality-schema'
 import {
   isEditableReportStatus,
   pcrwrRecordsPath,
@@ -117,11 +114,29 @@ type JudgmentPreview = {
   exceededParameters: string[]
 }
 
+function clip(value: string, max: number) {
+  return value.trim().slice(0, max)
+}
+
+function usableSourceLabel(value: string | null | undefined) {
+  const trimmed = value?.trim() ?? ''
+  if (!trimmed) return ''
+  if (trimmed.length > 80) return ''
+  if (
+    /www\.|https?:|ministry|government of pakistan|islamabad|khayban|pcrwr\.gov/i.test(
+      trimmed,
+    )
+  ) {
+    return ''
+  }
+  return trimmed
+}
+
 function optionalNumber(raw: string): number | null {
   const trimmed = raw.trim()
   if (!trimmed) return null
   const value = Number(trimmed)
-  return Number.isFinite(value) ? value : Number.NaN
+  return Number.isFinite(value) ? value : null
 }
 
 function toIso(value: string) {
@@ -401,25 +416,25 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
     })
 
     return {
-      reportSerialNo,
-      nwqlSampleCode: nwqlSampleCode,
-      customerCode: customerCode,
-      customerName,
-      customerAddress: customerAddress,
-      customerPhone: customerPhone,
+      reportSerialNo: clip(reportSerialNo, 100),
+      nwqlSampleCode: clip(nwqlSampleCode, 100),
+      customerCode: clip(customerCode, 50),
+      customerName: clip(customerName, 200),
+      customerAddress: clip(customerAddress, 500),
+      customerPhone: clip(customerPhone, 40),
       tehsilId,
       villageId,
       settlementId,
       sourceTypeId,
       sampleType,
-      sourceLabel,
-      documentTehsilName,
-      documentVillageName,
-      siteName,
+      sourceLabel: clip(sourceLabel, 100),
+      documentTehsilName: clip(documentTehsilName, 120),
+      documentVillageName: clip(documentVillageName, 120),
+      siteName: clip(siteName, 200),
       reportCategory,
       formType,
-      workOrder,
-      locationDetail,
+      workOrder: clip(workOrder, 100),
+      locationDetail: clip(locationDetail, 255),
       gpsLatitude: optionalNumber(gpsLatitude),
       gpsLongitude: optionalNumber(gpsLongitude),
       samplingAt: toIso(samplingAt) || samplingAt,
@@ -431,7 +446,7 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
       reportingDate: toIso(reportingDate) || reportingDate,
       totalPages: optionalNumber(totalPages),
       termsAgreed,
-      remarksOverride,
+      remarksOverride: clip(remarksOverride, 2000),
       results,
     }
   }
@@ -440,42 +455,39 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
     setFieldErrors({})
     setFormError(null)
     setServerErrors([])
-    const parsed = waterQualityReportSchema.safeParse(buildPayload())
-    if (!parsed.success) {
-      const next: Record<string, string> = {}
-      for (const issue of parsed.error.issues) {
-        const key = String(issue.path[0] ?? 'form')
-        if (!next[key]) next[key] = issue.message
-      }
-      setFieldErrors(next)
-      setFormError(parsed.error.issues[0]?.message ?? 'Check the highlighted fields')
+    const payload = buildPayload()
+    if (!payload.tehsilId || !payload.villageId) {
+      setFormError('Select tehsil and village, then save again')
+      return null
+    }
+    if (!payload.sourceTypeId) {
+      setFormError('Select a source')
+      return null
+    }
+    if (payload.results.length < 1) {
+      setFormError('Enter at least one parameter result')
+      return null
+    }
+    if (!payload.customerName.trim() || payload.customerName.trim().length < 2) {
+      setFormError('Customer name is required')
+      return null
+    }
+    if (!payload.locationDetail.trim() || payload.locationDetail.trim().length < 2) {
+      setFormError('Location detail is required')
+      return null
+    }
+    if (!payload.samplingAt || !payload.reportingDate) {
+      setFormError('Sampling date and reporting date are required')
       return null
     }
     if (
-      parsed.data.gpsLatitude !== null &&
-      Number.isNaN(parsed.data.gpsLatitude)
+      isOtherSourceType(sourceTypes, payload.sourceTypeId) &&
+      !payload.sourceLabel?.trim()
     ) {
-      setFieldErrors({ gpsLatitude: 'Latitude must be a number' })
-      setFormError('Latitude must be a number')
-      return null
-    }
-    if (
-      parsed.data.gpsLongitude !== null &&
-      Number.isNaN(parsed.data.gpsLongitude)
-    ) {
-      setFieldErrors({ gpsLongitude: 'Longitude must be a number' })
-      setFormError('Longitude must be a number')
-      return null
-    }
-    if (
-      isOtherSourceType(sourceTypes, parsed.data.sourceTypeId) &&
-      !parsed.data.sourceLabel?.trim()
-    ) {
-      setFieldErrors({ sourceLabel: 'Enter the source name from the report' })
       setFormError('Enter the source name from the report')
       return null
     }
-    return parsed.data
+    return payload
   }
 
   async function onValidate() {
@@ -591,7 +603,7 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
       setReportingDate(isoToDatetimeLocal(fields.reportingDate))
     }
     if (fields.remarksOverride) setRemarksOverride(fields.remarksOverride)
-    if (fields.sourceLabel) setSourceLabel(fields.sourceLabel)
+    if (fields.sourceLabel) setSourceLabel(usableSourceLabel(fields.sourceLabel))
     if (fields.documentTehsilName) {
       setDocumentTehsilName(fields.documentTehsilName)
     }
@@ -636,10 +648,11 @@ export function ReportEntryForm({ reportId }: { reportId?: string }) {
   }
 
   function applyParsedSource(parsed: ParsedLabDocument) {
-    const label =
-      parsed.fields.sourceLabel || parsed.source.sourceLabel || null
+    const label = usableSourceLabel(
+      parsed.fields.sourceLabel || parsed.source.sourceLabel,
+    )
     if (label) setSourceLabel(label)
-    pendingSourceLabel.current = label
+    pendingSourceLabel.current = label || null
 
     const catalog = sourceTypes
     const matched = matchSourceTypeFromCatalog(label, catalog)
