@@ -1,0 +1,23 @@
+[Unit]
+Description=Water Quality Management System - Gunicorn
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/user_wqms/web/wqms.prmsc/wqms_prmsc
+Environment="PATH=/home/user_wqms/web/wqms.prmsc/wqms_prmsc/venv/bin"
+ExecStart=/home/user_wqms/web/wqms.prmsc/wqms_prmsc/venv/bin/gunicorn -c gunicorn_config.py app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=always
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

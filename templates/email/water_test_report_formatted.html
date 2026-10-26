@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Quality Test Report</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .alert-box {
+            background-color: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 25px;
+            color: #155724;
+        }
+        
+        .alert-box strong {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 10px;
+        }
+        
+        .test-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .test-table th {
+            background-color: #2a5298;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #1e3c72;
+        }
+        
+        .test-table td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        
+        .test-table tr:nth-child(even) td {
+            background-color: #ffffff;
+        }
+        
+        .test-table tr:hover td {
+            background-color: #f0f0f0;
+        }
+        
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        .quality-good {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .quality-fair {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        
+        .quality-poor {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .quality-na {
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .remarks-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .remarks-box h4 {
+            margin-top: 0;
+            color: #1e3c72;
+        }
+        
+        .metadata-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .metadata-table td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+        }
+        
+        .metadata-table td:first-child {
+            font-weight: bold;
+            width: 35%;
+            background-color: #f9f9f9;
+            color: #1e3c72;
+        }
+        
+        .metadata-table td:last-child {
+            background-color: white;
+        }
+        
+        .footer {
+            background-color: #f9f9f9;
+            border-top: 2px solid #2a5298;
+            padding: 20px 30px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .resend-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 15px 0;
+            color: #856404;
+            font-size: 13px;
+        }
+        
+        .quality-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .quality-card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .quality-card-title {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        
+        .quality-card-value {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .test-table th,
+            .test-table td {
+                padding: 8px;
+                font-size: 13px;
+            }
+            
+            .quality-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Water Quality Test Report Alert</h1>
+            <p>PCRWR National Water Quality Laboratory</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Severity Banner -->
+            {% if severity is defined and severity %}
+              {% if severity.level == 'UNSAFE' %}
+              <div style="background:#fef2f2;border:2px solid #f87171;border-radius:8px;padding:18px 22px;margin-bottom:22px;">
+                <div style="font-size:22px;font-weight:900;color:#7f1d1d;margin-bottom:8px;">🚨 UNSAFE — Critical Contamination Detected</div>
+                <div style="font-size:14px;color:#991b1b;margin-bottom:6px;">
+                  <strong>Critical parameters exceeding WHO/NSDWQ limits:</strong><br>
+                  {{ severity.critical_params | join(' &bull; ') }}
+                </div>
+                {% if severity.minor_exceedances %}
+                <div style="font-size:13px;color:#b91c1c;">
+                  Additional exceedances: {{ severity.minor_exceedances | join(', ') }}
+                </div>
+                {% endif %}
+                <div style="margin-top:10px;padding:10px 14px;background:#fee2e2;border-radius:6px;font-size:13px;font-weight:700;color:#7f1d1d;">
+                  ⚠ Immediate action required. This water is NOT SAFE for human consumption.
+                </div>
+              </div>
+              {% elif severity.level == 'CAUTION' %}
+              <div style="background:#fffbeb;border:2px solid #fbbf24;border-radius:8px;padding:18px 22px;margin-bottom:22px;">
+                <div style="font-size:22px;font-weight:900;color:#78350f;margin-bottom:8px;">⚠️ CAUTION — {{ severity.exceedance_count }} Parameter{{ 's' if severity.exceedance_count != 1 else '' }} Above Limit</div>
+                <div style="font-size:14px;color:#92400e;margin-bottom:6px;">
+                  <strong>Parameters exceeding permissible limits:</strong><br>
+                  {{ severity.all_exceedances | join(' &bull; ') }}
+                </div>
+                <div style="margin-top:10px;padding:10px 14px;background:#fef3c7;border-radius:6px;font-size:13px;font-weight:700;color:#78350f;">
+                  Treatment may be required before use for human consumption. Please review.
+                </div>
+              </div>
+              {% else %}
+              <div style="background:#f0fdf4;border:2px solid #4ade80;border-radius:8px;padding:18px 22px;margin-bottom:22px;">
+                <div style="font-size:22px;font-weight:900;color:#14532d;margin-bottom:8px;">✅ SAFE — All Parameters Within Limits</div>
+                <div style="font-size:14px;color:#166534;margin-bottom:6px;">
+                  All tested water quality parameters are within WHO and NSDWQ permissible limits.
+                </div>
+                <div style="margin-top:10px;padding:10px 14px;background:#dcfce7;border-radius:6px;font-size:13px;font-weight:700;color:#14532d;">
+                  The water is fit for human consumption based on this test report.
+                </div>
+              </div>
+              {% endif %}
+            {% else %}
+            <div class="alert-box">
+                <strong>✓ Report Status: APPROVED</strong>
+                A water quality test report has been approved and processed. Here are the details:
+            </div>
+            {% endif %}
+            
+            {% if is_resend %}
+            <div class="resend-notice">
+                <strong>ℹ Notice:</strong> This is a resend of the notification for this report. The original notification may have encountered delivery issues.
+            </div>
+            {% endif %}
+            
+            <!-- Main Test Details Table -->
+            <div class="section-title">Test Report Summary</div>
+            
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>Test ID</th>
+                        <th>Village</th>
+                        <th>Tehsil</th>
+                        <th>Test Date</th>
+                        <th>Test Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>{{ report.test_details.test_id }}</strong></td>
+                        <td>{{ report.test_details.village }}</td>
+                        <td>{{ report.test_details.tehsil }}</td>
+                        <td>{{ report.test_details.test_date }}</td>
+                        <td>{{ report.test_details.test_type }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Quality Assessment Table -->
+            <div class="section-title">Quality Assessment Results</div>
+            
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>Physical Quality</th>
+                        <th>Chemical Quality</th>
+                        <th>Trace Elements Quality</th>
+                        <th>Microbial Quality</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            {% if report.test_details.physical_quality == 'EXCELLENT' %}
+                                <span class="quality-good">{{ report.test_details.physical_quality }}</span>
+                            {% elif report.test_details.physical_quality == 'GOOD' %}
+                                <span class="quality-good">{{ report.test_details.physical_quality }}</span>
+                            {% elif report.test_details.physical_quality == 'FAIR' %}
+                                <span class="quality-fair">{{ report.test_details.physical_quality }}</span>
+                            {% elif report.test_details.physical_quality == 'POOR' %}
+                                <span class="quality-poor">{{ report.test_details.physical_quality }}</span>
+                            {% else %}
+                                <span class="quality-na">{{ report.test_details.physical_quality }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if report.test_details.chemical_quality == 'EXCELLENT' %}
+                                <span class="quality-good">{{ report.test_details.chemical_quality }}</span>
+                            {% elif report.test_details.chemical_quality == 'GOOD' %}
+                                <span class="quality-good">{{ report.test_details.chemical_quality }}</span>
+                            {% elif report.test_details.chemical_quality == 'FAIR' %}
+                                <span class="quality-fair">{{ report.test_details.chemical_quality }}</span>
+                            {% elif report.test_details.chemical_quality == 'POOR' %}
+                                <span class="quality-poor">{{ report.test_details.chemical_quality }}</span>
+                            {% else %}
+                                <span class="quality-na">{{ report.test_details.chemical_quality }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ report.test_details.trace_elements_quality }}</td>
+                        <td>
+                            {% if report.test_details.microbial_quality == 'SAFE' %}
+                                <span class="quality-good">{{ report.test_details.microbial_quality }}</span>
+                            {% elif report.test_details.microbial_quality == 'UNSAFE' %}
+                                <span class="quality-poor">{{ report.test_details.microbial_quality }}</span>
+                            {% elif report.test_details.microbial_quality == 'CONTAMINATED' %}
+                                <span class="quality-poor">{{ report.test_details.microbial_quality }}</span>
+                            {% else %}
+                                <span class="quality-na">{{ report.test_details.microbial_quality }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Final Results Table -->
+            <div class="section-title">Final Assessment</div>
+            
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>Overall Result</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ report.test_details.overall_result }}</td>
+                        <td><span class="status-approved">{{ report.test_details.status }}</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Remarks Section -->
+            {% if report.test_details.remarks and report.test_details.remarks != 'No remarks' %}
+            <div class="remarks-box">
+                <h4>Remarks & Comments</h4>
+                <p>{{ report.test_details.remarks }}</p>
+            </div>
+            {% endif %}
+            
+            <!-- Additional Information -->
+            <div class="section-title">Additional Details</div>
+            
+            <table class="metadata-table">
+                <tr>
+                    <td>Sample Code</td>
+                    <td>{{ report.sample_code }}</td>
+                </tr>
+                <tr>
+                    <td>Customer/Location</td>
+                    <td>{{ report.customer_name }}</td>
+                </tr>
+                <tr>
+                    <td>Sampling Location</td>
+                    <td>{{ report.location }}</td>
+                </tr>
+                <tr>
+                    <td>Report Date</td>
+                    <td>{{ report.reporting_date }}</td>
+                </tr>
+                <tr>
+                    <td>Report Type</td>
+                    <td>{{ report.form_type|title }}</td>
+                </tr>
+            </table>
+
+            {% if report.form_type == 'priority' %}
+
+            <div class="section-title">Physical & Aesthetic Parameters</div>
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in report.physical_params %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.value if p.value is not none else 'N/A' }}{% if p.unit %} {{ p.unit }}{% endif %}</td>
+                        <td>{{ p.status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="section-title">Microbiological Parameters</div>
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in report.microbio_params %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.value if p.value is not none else 'N/A' }}{% if p.unit %} {{ p.unit }}{% endif %}</td>
+                        <td>{{ p.status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% elif report.form_type == 'full' %}
+
+            <div class="section-title">Physical & Aesthetic Parameters</div>
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in report.physical_params %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.value if p.value is not none else 'N/A' }}{% if p.unit %} {{ p.unit }}{% endif %}</td>
+                        <td>{{ p.status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="section-title">Major Chemical Parameters</div>
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in report.chemical_params %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.value if p.value is not none else 'N/A' }}{% if p.unit %} {{ p.unit }}{% endif %}</td>
+                        <td>{{ p.status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="section-title">Trace & Ultra-Trace Elements</div>
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in report.trace_params %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.value if p.value is not none else 'N/A' }}{% if p.unit %} {{ p.unit }}{% endif %}</td>
+                        <td>{{ p.status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="section-title">Microbiological Parameters</div>
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in report.microbio_params %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.value if p.value is not none else 'N/A' }}{% if p.unit %} {{ p.unit }}{% endif %}</td>
+                        <td>{{ p.status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% endif %}
+
+            <!-- Interpretation -->
+            <div class="section-title">Interpretation</div>
+            <div class="remarks-box" style="border-left-color: #2a5298; background-color: #f0f8ff;">
+                <p>{{ report.quality_summary.interpretation }}</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                <strong>PCRWR National Water Quality Laboratory</strong><br>
+                This is an automated alert notification. Please do not reply to this email.<br>
+                For inquiries, contact: nwql@pcrwr.gov.pk
+            </p>
+            <p style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 15px;">
+                Generated on: <strong>{{ report.reporting_date }}</strong> | 
+                Report ID: <strong>{{ report.test_details.test_id }}</strong>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

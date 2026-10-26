@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Water Quality Management System</title>
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS & JS - Load globally so it's available for all pages -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="anonymous"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin="anonymous"></script>
+  <!-- LocationCascade - Load globally so tehsil/village/settlement dropdowns work in all page fragments -->
+  <script src="{{ url_for('static', filename='js/location_cascade.js') }}"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .container-main {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation - Enhanced */
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(180deg, #0d1f45 0%, #1e3c72 40%, #2a5298 75%, #1a2f5a 100%);
+      color: white;
+      padding: 0 0 160px 0;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+      z-index: 1000;
+      transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .sidebar-header {
+      padding: 18px 16px 14px;
+      background: rgba(0, 0, 0, 0.28);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .sidebar-logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 11px;
+    }
+
+    .sidebar-logo {
+      width: 50px;
+      height: 50px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.45));
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo-sep {
+      width: 1px;
+      height: 42px;
+      background: rgba(255,255,255,0.22);
+      flex-shrink: 0;
+    }
+
+    .sidebar-org-name {
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: rgba(255,255,255,0.92);
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-wqms-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: linear-gradient(90deg, #f59e0b, #d97706);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      padding: 3px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      box-shadow: 0 2px 8px rgba(245,158,11,0.35);
+    }
+
+    .sidebar-user-card {
+      margin: 0 10px 8px;
+      padding: 9px 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-user-avatar-sm {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #4fc3f7 0%, #0288d1 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    .sidebar-user-text { display: flex; flex-direction: column; min-width: 0; }
+
+    .sidebar-user-text strong {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.92);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-user-text span {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .sidebar-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px 10px 20px;
+      background: linear-gradient(180deg, transparent, rgba(13,31,69,0.95) 30%);
+    }
+
+    .sidebar-nav {
+      padding: 20px 0;
+    }
+
+    .nav-item {
+      padding: 15px 20px;
+      margin: 8px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.75);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: left 0.4s ease;
+      z-index: -1;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      transform: translateX(8px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-item:hover::before {
+      left: 0;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(79, 195, 247, 0.3) 0%, rgba(79, 195, 247, 0.1) 100%);
+      color: #4fc3f7;
+      border-left: 4px solid #4fc3f7;
+      box-shadow: 0 4px 15px rgba(79, 195, 247, 0.2);
+      font-weight: 600;
+    }
+
+    .nav-item i {
+      font-size: 18px;
+      width: 25px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-item:hover i {
+      transform: scale(1.2);
+    }
+
+    .logout-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: rgba(255,255,255,0.85);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.35s ease;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .logout-btn:hover {
+      background: linear-gradient(135deg, rgba(244, 67, 54, 0.3) 0%, rgba(244, 67, 54, 0.1) 100%);
+      border-color: rgba(244, 67, 54, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(244, 67, 54, 0.3);
+    }
+
+    /* Main Content - Enhanced */
+    .main-content {
+      margin-left: 280px;
+      flex: 1;
+      padding: 40px;
+      animation: fadeIn 0.5s ease;
+      min-width: 0;
+      transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      background: white;
+      padding: 25px 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(10px);
+      animation: slideDown 0.5s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header h1 {
+      font-size: 32px;
+      color: #1e3c72;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      border-radius: 12px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 20px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      border: 2px solid white;
+    }
+
+    .user-info p {
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .user-info p:first-child {
+      font-weight: 600;
+      color: #1e3c72;
+    }
+
+    .user-info p:last-child {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .content-area {
+      background: white;
+      border-radius: 15px;
+      padding: 40px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      min-height: 500px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      animation: slideUp 0.5s ease;
+      max-width: 100%;
+      overflow: hidden; /* Restricts horizontal blowout */
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .page-title {
+      font-size: 28px;
+      color: #1e3c72;
+      margin-bottom: 15px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .page-description {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1e3c72;
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2a5298;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 70px;
+        padding: 15px 0;
+      }
+
+      .sidebar-header {
+        padding: 10px 6px;
+        margin-bottom: 5px;
+      }
+
+      .sidebar-logos { gap: 6px; }
+      .sidebar-logo { width: 32px; height: 32px; }
+      .sidebar-org-name, .sidebar-wqms-badge { display: none; }
+      .sidebar-user-card { display: none; }
+      .sidebar-bottom { padding: 10px 5px 15px; }
+
+      .nav-item {
+        padding: 12px 10px;
+        margin: 5px 5px;
+        justify-content: center;
+      }
+
+      .nav-item span {
+        display: none;
+      }
+
+      .main-content {
+        margin-left: 70px;
+        padding: 20px;
+      }
+
+      .header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .content-area {
+        padding: 25px;
+      }
+
+      .page-title {
+        font-size: 22px;
+      }
+    }
+
+    /* ── Sidebar Toggle Button ──────────────────────────────────────── */
+    .sidebar-header { position: relative; }
+
+    .sidebar-toggle-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 6px;
+      color: rgba(255,255,255,0.75);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all 0.2s;
+      z-index: 5;
+      flex-shrink: 0;
+    }
+    .sidebar-toggle-btn:hover {
+      background: rgba(255,255,255,0.22);
+      color: white;
+    }
+
+    /* ── Collapsed sidebar (icon-only, 70px) ─────────────────────────── */
+    .sidebar.collapsed { width: 70px; }
+
+    .sidebar.collapsed .sidebar-org-name,
+    .sidebar.collapsed .sidebar-wqms-badge,
+    .sidebar.collapsed .sidebar-logo-sep,
+    .sidebar.collapsed .nav-item span,
+    .sidebar.collapsed .sidebar-user-text,
+    .sidebar.collapsed .logout-btn span { display: none; }
+
+    .sidebar.collapsed .sidebar-logos {
+      flex-direction: column;
+      gap: 3px;
+      margin-bottom: 6px;
+    }
+    .sidebar.collapsed .sidebar-logo { width: 34px; height: 34px; }
+
+    .sidebar.collapsed .nav-item {
+      justify-content: center;
+      padding: 14px 0;
+      margin: 6px 8px;
+    }
+    .sidebar.collapsed .nav-item:hover { transform: none; }
+    .sidebar.collapsed .nav-item i { width: auto; font-size: 20px; }
+
+    .sidebar.collapsed .sidebar-user-card {
+      justify-content: center;
+      padding: 8px 6px;
+    }
+    .sidebar.collapsed .logout-btn { justify-content: center; padding: 12px 0; }
+
+    /* Tooltip on collapsed nav items */
+    .sidebar.collapsed .nav-item {
+      position: relative;
+    }
+    .sidebar.collapsed .nav-item::after {
+      content: attr(data-label);
+      position: fixed;
+      left: 78px;
+      background: #0d1f45;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 9999;
+    }
+    .sidebar.collapsed .nav-item:hover::after { opacity: 1; }
+
+    .main-content.sidebar-collapsed { margin-left: 70px; }
+
+    @media (max-width: 480px) {
+      .sidebar {
+        width: 60px;
+      }
+
+      .main-content {
+        margin-left: 60px;
+        padding: 15px;
+      }
+
+      .header {
+        padding: 15px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+      }
+
+      .content-area {
+        padding: 20px;
+      }
+
+      .page-title {
+        font-size: 20px;
+      }
+
+      .user-info {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container-main">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+      <!-- Header: Logos + Org Name -->
+      <div class="sidebar-header">
+        <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="sidebar-logos">
+          <img src="{{ url_for('static', filename='images/GOP Logo (1).png') }}" class="sidebar-logo" alt="Government of Pakistan">
+          <div class="sidebar-logo-sep"></div>
+          <img src="{{ url_for('static', filename='images/PRMSC Logo PSD (1).png') }}" class="sidebar-logo" alt="PRMSC">
+        </div>
+        <div class="sidebar-org-name">Punjab Rural Municipal<br>Services Company</div>
+        <span class="sidebar-wqms-badge">
+          <i class="fas fa-tint" style="font-size:8px;"></i> WQMS
+        </span>
+      </div>
+
+      <!-- Navigation Items -->
+      <div class="sidebar-nav">
+        {% set is_viewer = user_role == 'dashboard_viewer' %}
+        {% if user_role != 'pcrwr_user' %}
+        <div class="nav-item active" data-label="Dashboard" onclick="loadPage('/dashboard', this)">
+          <i class="fas fa-chart-line"></i>
+          <span>Dashboard</span>
+        </div>
+        {% endif %}
+
+        {% if not is_viewer %}
+        <div class="nav-item {% if user_role == 'pcrwr_user' %}active{% endif %}" data-label="Post-intervention Report" onclick="loadPage('/add-water-test', this)">
+          <i class="fas fa-flask"></i>
+          <span>Post-intervention Report</span>
+        </div>
+
+        <div class="nav-item" data-label="Baseline Report" onclick="loadPage('/baseline-report', this)">
+          <i class="fas fa-file-medical-alt"></i>
+          <span>Baseline Report</span>
+        </div>
+        {% endif %}
+
+        {% if user_role != 'pcrwr_user' and not is_viewer %}
+        <div class="nav-item" data-label="View Submissions" onclick="loadPage('/view-submissions', this)">
+          <i class="fas fa-eye"></i>
+          <span>View Submissions</span>
+        </div>
+        {% endif %}
+
+        {% if user_role != 'pcrwr_user' and not is_viewer %}
+        <div class="nav-item" data-label="Impact Comparison" onclick="loadPage('/comparison', this)">
+          <i class="fas fa-balance-scale"></i>
+          <span>Impact Comparison</span>
+        </div>
+        {% endif %}
+
+        {% if not is_viewer %}
+        <div class="nav-item" data-label="Draft Submissions" onclick="loadPage('/draft-form', this)">
+          <i class="fas fa-file-alt"></i>
+          <span>Draft Submissions</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Bottom: User card + Logout -->
+      <div class="sidebar-bottom">
+        <div class="sidebar-user-card">
+          <div class="sidebar-user-avatar-sm">{{ user_name[0]|upper if user_name else 'U' }}</div>
+          <div class="sidebar-user-text">
+            <strong>{{ user_name }}</strong>
+            <span>
+              {% if user_role == 'pcrwr_user' %}PCRWR User
+              {% elif user_role == 'environmental_specialist' %}Environmental Specialist
+              {% elif user_role == 'research_analyst' %}Research Analyst
+              {% elif user_role == 'dashboard_viewer' %}Dashboard Viewer
+              {% else %}{{ user_role|title }}{% endif %}
+            </span>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="header">
+        <!-- <h1>Water Quality Management System</h1> -->
+        <div class="user-info" style="margin-left: auto;">
+          <div class="user-avatar">{{ user_name[0]|upper if user_name else 'U' }}</div>
+          <div>
+            <p style="margin: 0; font-weight: 600;">{{ user_name }}</p>
+            <p style="margin: 0; font-size: 12px; color: #999;">
+              {% if user_role == 'pcrwr_user' %}PCRWR User
+              {% elif user_role == 'environmental_specialist' %}Environmental Specialist
+              {% elif user_role == 'research_analyst' %}Research Analyst
+              {% elif user_role == 'dashboard_viewer' %}Dashboard Viewer
+              {% else %}{{ user_role|title }}
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-area" id="content-container">
+        <!-- Content will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    // Initialize form type selector functionality
+    // NOTE: This function should NOT override window.selectFormType if it already exists
+    // The full implementation is in add_water_test.html
+    function initializeFormTypeSelector() {
+      console.log('🔧 Initializing form type selector...');
+
+      // Check if form type buttons exist
+      const priorityBtn = document.getElementById('priorityParamsBtn');
+      const fullBtn = document.getElementById('fullParamsBtn');
+
+      if (!priorityBtn || !fullBtn) {
+        console.log('⚠️ Form type buttons not found in DOM');
+        return;
+      }
+
+      console.log('✅ Form type buttons found');
+
+      // Check if selectFormType already exists (defined in add_water_test.html)
+      // If so, don't overwrite it - that version has the full implementation
+      if (typeof window.selectFormType === 'function') {
+        console.log('✅ selectFormType already defined, using existing implementation');
+        return;
+      }
+
+      console.log('⚠️ selectFormType not found, this should not happen - check add_water_test.html scripts');
+    }
+
+    // Global form type selection function (fallback)
+    // This just delegates to window.selectFormType which should be defined by add_water_test.html
+    function selectFormType(formType) {
+      // Avoid calling itself; only delegate if a different implementation exists
+      if (typeof window.selectFormType === 'function' && window.selectFormType !== selectFormType) {
+        return window.selectFormType(formType);
+      }
+
+      console.warn('selectFormType implementation not yet available - retrying');
+      // Retry after a short delay to allow page scripts to define the real implementation
+      setTimeout(() => {
+        if (typeof window.selectFormType === 'function' && window.selectFormType !== selectFormType) {
+          window.selectFormType(formType);
+        } else {
+          console.error('selectFormType still not defined after retry');
+        }
+      }, 200);
+    }
+
+    // Load page content dynamically
+    function loadPage(page, element) {
+      // Remove active class from all nav items
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+
+      // Add active class to clicked item
+      if (element) {
+        element.classList.add('active');
+      }
+
+      // Load the page content
+      fetch(page)
+        .then(response => response.text())
+        .then(data => {
+          const container = document.getElementById('content-container');
+
+          // Create a temporary div to parse the HTML without executing scripts
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = data;
+
+          // Extract scripts before they execute
+          const scripts = Array.from(tempDiv.querySelectorAll('script'));
+          // Separate external (src) scripts from inline scripts — textContent is empty for external ones
+          const externalSrcs = scripts.filter(s => s.src).map(s => s.src);
+          const scriptContents = scripts.filter(s => !s.src).map(script => script.textContent);
+
+          // Remove scripts from the temp div
+          scripts.forEach(script => script.remove());
+
+          // Set the HTML content (without scripts)
+          container.innerHTML = tempDiv.innerHTML;
+
+          // Execute scripts after DOM is fully rendered
+          // Use requestAnimationFrame to ensure the browser has painted the new DOM
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              // Load external scripts that are not already present on the page
+              externalSrcs.forEach(function(src) {
+                if (!document.querySelector('script[src="' + src + '"]')) {
+                  const extScript = document.createElement('script');
+                  extScript.src = src;
+                  document.body.appendChild(extScript);
+                }
+              });
+
+              console.log(`[loadPage] Executing ${scriptContents.length} scripts for page: ${page}`);
+              scriptContents.forEach((scriptContent, index) => {
+                try {
+                  // Create a script element and execute the content
+                  // Global variables will be accessible, but we wrap in a safety guard
+                  const newScript = document.createElement('script');
+                  // Prepend code to detect if variables already exist and use var instead of let/const
+                  const wrappedContent = `
+                    try {
+                      ${scriptContent}
+                    } catch(e) {
+                      if (e instanceof SyntaxError && e.message.includes('already been declared')) {
+                        console.warn('[loadPage] Script redeclaration detected (expected on page reload):', e.message);
+                      } else {
+                        throw e;
+                      }
+                    }
+                  `;
+                  newScript.textContent = wrappedContent;
+                  document.body.appendChild(newScript);
+                } catch (error) {
+                  console.error(`[loadPage] Error executing script ${index}:`, error);
+                }
+              });
+
+              // Initialize form type selector if on add water test or baseline report page
+              if (page.includes('add_water_test') || page.includes('add-water-test') ||
+                  page.includes('baseline-report') || page.includes('baseline_report')) {
+                setTimeout(() => {
+                  if (typeof initializeFormTypeSelector === 'function') {
+                    initializeFormTypeSelector();
+                  }
+                }, 100);
+              }
+            });
+          });
+        })
+        .catch(error => {
+          document.getElementById('content-container').innerHTML =
+            '<p style="color: red;">Error loading page: ' + error + '</p>';
+        });
+    }
+
+    // Logout function
+    function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }).then(response => {
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }).catch(error => {
+          console.error('Error:', error);
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        });
+      }
+    }
+
+    // ── Sidebar collapse toggle ────────────────────────────────────────
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const main = document.querySelector('.main-content');
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      main.classList.toggle('sidebar-collapsed', isCollapsed);
+      localStorage.setItem('sidebarCollapsed', isCollapsed ? '1' : '0');
+    }
+
+    // Restore sidebar state on page load
+    (function() {
+      if (localStorage.getItem('sidebarCollapsed') === '1') {
+        const sidebar = document.querySelector('.sidebar');
+        const main = document.querySelector('.main-content');
+        if (sidebar) sidebar.classList.add('collapsed');
+        if (main) main.classList.add('sidebar-collapsed');
+      }
+    })();
+
+    // Load default page on page load based on user role or initial_page
+    window.addEventListener('load', function() {
+      {% if initial_page %}
+      // Load specific page (for page refresh support)
+      var initialPage = '{{ initial_page }}';
+      var navItem = document.querySelector('.nav-item[onclick*="' + initialPage + '"]');
+      if (navItem) {
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        navItem.classList.add('active');
+      }
+      loadPage(initialPage, navItem);
+      {% elif user_role == 'pcrwr_user' %}
+      // For pcrwr_user, load Add Water Test page by default
+      loadPage('/add-water-test', document.querySelector('.nav-item.active'));
+      {% else %}
+      // For other roles, load Dashboard by default
+      loadPage('/dashboard', document.querySelector('.nav-item.active'));
+      {% endif %}
+    });
+  </script>
+</body>
+</html>

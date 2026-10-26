@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login Page</title>
+  <!-- Font Awesome -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+      font-family: 'Poppins', sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Full Screen Floating Bubbles Background */
+    .bubbles-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .bubble-bg {
+      position: absolute;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(100, 150, 255, 0.2));
+      border-radius: 50%;
+      opacity: 0.5;
+      animation: float-bg linear infinite;
+      box-shadow: inset -2px -2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .bubble-bg:nth-child(1) {
+      width: 120px;
+      height: 120px;
+      left: 5%;
+      top: 10%;
+      animation-duration: 15s;
+      animation-delay: 0s;
+    }
+
+    .bubble-bg:nth-child(2) {
+      width: 90px;
+      height: 90px;
+      left: 90%;
+      top: 5%;
+      animation-duration: 18s;
+      animation-delay: 2s;
+    }
+
+    .bubble-bg:nth-child(3) {
+      width: 150px;
+      height: 150px;
+      left: 50%;
+      top: 80%;
+      animation-duration: 20s;
+      animation-delay: 4s;
+    }
+
+    .bubble-bg:nth-child(4) {
+      width: 70px;
+      height: 70px;
+      left: 15%;
+      top: 70%;
+      animation-duration: 16s;
+      animation-delay: 1s;
+    }
+
+    .bubble-bg:nth-child(5) {
+      width: 110px;
+      height: 110px;
+      left: 85%;
+      top: 50%;
+      animation-duration: 19s;
+      animation-delay: 3s;
+    }
+
+    .bubble-bg:nth-child(6) {
+      width: 80px;
+      height: 80px;
+      left: 40%;
+      top: 15%;
+      animation-duration: 17s;
+      animation-delay: 1.5s;
+    }
+
+    .bubble-bg:nth-child(7) {
+      width: 100px;
+      height: 100px;
+      left: 10%;
+      top: 40%;
+      animation-duration: 18.5s;
+      animation-delay: 2.5s;
+    }
+
+    .bubble-bg:nth-child(8) {
+      width: 95px;
+      height: 95px;
+      left: 75%;
+      top: 25%;
+      animation-duration: 16.5s;
+      animation-delay: 0.5s;
+    }
+
+    .bubble-bg:nth-child(9) {
+      width: 130px;
+      height: 130px;
+      left: 60%;
+      top: 5%;
+      animation-duration: 21s;
+      animation-delay: 3.5s;
+    }
+
+    .bubble-bg:nth-child(10) {
+      width: 85px;
+      height: 85px;
+      left: 25%;
+      top: 55%;
+      animation-duration: 17.5s;
+      animation-delay: 1.2s;
+    }
+
+    @keyframes float-bg {
+      0% {
+        transform: translateY(0px) translateX(0px) scale(1);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.5;
+      }
+      90% {
+        opacity: 0.5;
+      }
+      100% {
+        transform: translateY(-120vh) translateX(150px) scale(0.8);
+        opacity: 0;
+      }
+    }
+
+    .main-container {
+      display: flex;
+      background: #ffffff;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      border-radius: 15px;
+      border: 3px solid #3498db;
+      overflow: hidden;
+      max-width: 900px;
+      width: 100%;
+      animation: slideUp 0.6s ease;
+      position: relative;
+      z-index: 10;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .left-section {
+      background: #f0f4ff;
+      padding: 100px;
+      width: 45%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid #ddd;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Floating Bubbles Animation */
+    .bubble {
+      position: absolute;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(100, 150, 255, 0.2));
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: float linear infinite;
+      box-shadow: inset -2px -2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .bubble:nth-child(1) {
+      width: 80px;
+      height: 80px;
+      left: 10%;
+      top: 20%;
+      animation-duration: 6s;
+      animation-delay: 0s;
+    }
+
+    .bubble:nth-child(2) {
+      width: 60px;
+      height: 60px;
+      left: 80%;
+      top: 10%;
+      animation-duration: 8s;
+      animation-delay: 1s;
+    }
+
+    .bubble:nth-child(3) {
+      width: 100px;
+      height: 100px;
+      left: 50%;
+      top: 60%;
+      animation-duration: 10s;
+      animation-delay: 2s;
+    }
+
+    .bubble:nth-child(4) {
+      width: 50px;
+      height: 50px;
+      left: 20%;
+      top: 70%;
+      animation-duration: 7s;
+      animation-delay: 0.5s;
+    }
+
+    .bubble:nth-child(5) {
+      width: 70px;
+      height: 70px;
+      left: 85%;
+      top: 50%;
+      animation-duration: 9s;
+      animation-delay: 1.5s;
+    }
+
+    .bubble:nth-child(6) {
+      width: 55px;
+      height: 55px;
+      left: 40%;
+      top: 15%;
+      animation-duration: 8.5s;
+      animation-delay: 0.8s;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0px) translateX(0px);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.6;
+      }
+      90% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-100vh) translateX(100px);
+        opacity: 0;
+      }
+    }
+
+    .left-section img.logo {
+      width: 100px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+
+    .left-section h2 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .left-section img.main-image {
+      width: 100%;
+      max-width: 250px;
+      height: auto;
+      border-radius: 6px;
+    }
+
+    .right-section {
+      padding: 40px;
+      width: 55%;
+    }
+
+    .right-section h2 {
+      text-align: center;
+      color: #222;
+      margin-bottom: 30px;
+      font-size: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .form-group i {
+      position: absolute;
+      left: 12px;
+      top: 42px;
+      color: #999;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 15px 14px 40px;
+      font-size: 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: white;
+    }
+
+    .form-group input:focus {
+      border-color: #1e3c72;
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(30, 60, 114, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .form-group input:hover {
+      border-color: #2a5298;
+    }
+
+    .form-group .toggle-password {
+      position: absolute;
+      top: 42px;
+      right: 12px;
+      cursor: pointer;
+      color: #999;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .checkbox-group input {
+      margin-right: 8px;
+      width: auto;
+    }
+
+    .checkbox-group label {
+      font-size: 14px;
+      color: #555;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: #fff;
+      border: none;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(30, 60, 114, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .submit-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(30, 60, 114, 0.4);
+    }
+
+    .submit-btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .form-footer a {
+      color: #007BFF;
+      text-decoration: none;
+    }
+
+    .form-footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+      }
+
+      .left-section, .right-section {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .right-section {
+        padding: 30px;
+      }
+    }                
+  </style>
+</head>
+<body>
+  <!-- Full Screen Floating Bubbles Background -->
+  <div class="bubbles-background">
+    <div class="bubble-bg"></div>
+    <div class="bubble-bg"></div>
+    <div class="bubble-bg"></div>
+    <div class="bubble-bg"></div>
+    <div class="bubble-bg"></div>
+    <div class="bubble-bg"></div>
+    <div class="bubble-bg"></div>
+    <div class="bubble-bg"></div>
+    <div class="bubble-bg"></div>
+    <div class="bubble-bg"></div>
+  </div>
+
+  <div class="main-container">
+    <!-- Left Section -->
+    <div class="left-section">
+      <!-- Floating Bubbles -->
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+      <div class="bubble"></div>
+
+      <img src="{{ url_for('static', filename='images/logo-image.png') }}" alt="Logo"
+           style="width: 200px; height: auto; display: block; margin: 0 auto; position: relative; z-index: 1;" />
+      <img src="{{ url_for('static', filename='images/prmsc.svg') }}" alt="Logo"
+           style="width: 400px; height: auto; display: block; position: relative; z-index: 1;" />
+
+      <h2 style="text-align: center; font-weight: bold; font-size: 2rem;
+                  color: #274293;
+                  margin: 20px 0;
+                  position: relative;
+                  z-index: 1;">
+        Water Quality Monitoring System
+      </h2>
+
+      <img src="{{ url_for('static', filename='images/login-image.jpg') }}" alt="Land"
+           style="width: 80%; height: auto; display: block; margin: 0 auto; position: relative; z-index: 1;" />
+    </div>
+
+    <!-- Right Section -->
+    <div class="right-section">
+      <h4 style="
+          background: linear-gradient(to right, #274293, #ffffff);
+          color: white;
+          padding: 10px;
+          font-size: 28px;
+          text-align: center;
+          border-radius: 8px;
+          margin-bottom: 38px;
+          line-height: 1.8;
+          font-weight: bold;">
+        Welcome
+      </h4>
+      <h2>Sign In</h2>
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" name="email" id="email" placeholder="Enter your email" required />
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <i class="fa-solid fa-lock"></i>
+          <div class="password-wrapper">
+             <input type="password" name="password" id="password" placeholder="Enter your password" required />
+             <i class="fa-solid fa-eye toggle-password" onclick="togglePassword()"></i>
+          </div>
+        </div>
+
+        <!-- Remember Me -->
+        <div class="checkbox-group">
+          <input type="checkbox" id="remember" name="remember" />
+          <label for="remember">Remember me</label>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="submit-btn">Login</button>
+      </form>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <p>Don't have an account? <a href="/register">Sign up</a></p>
+        <p><a href="/reset-password">Forgot password?</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Toggle Script -->
+  <script>
+    function togglePassword() {
+      const passwordInput = document.getElementById("password");
+      const icon = document.querySelector(".toggle-password");
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+      } else {
+        passwordInput.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+      }
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          window.location.href = '/index.html';
+        } else {
+          alert(data.message || 'Login failed');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred during login');
+      }
+    }
+  </script>
+
+  <!-- Check for success parameter in URL -->
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const userName = urlParams.get('name');
+
+    if (success === 'true' && userName) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Registration Successful!',
+        text: `Welcome ${userName}! Your account has been created successfully.`,
+        confirmButtonText: 'Continue to Login',
+        confirmButtonColor: '#1f2937'
+      });
+    }
+  </script>
+</body>
+</html>

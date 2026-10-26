@@ -1,0 +1,2838 @@
+<!-- Header Logo Section -->
+<div class="logo-section-header">
+    <div class="logo-row">
+        <!-- GOP Logo - Left -->
+        <img src="/static/images/GOP Logo (1).png" alt="GOP Logo" class="header-logo logo-left">
+        <!-- Center Text Logos -->
+        <div class="logo-center-group">
+            <img src="/static/images/prmsc.svg" alt="PRMSC" class="header-logo logo-title">
+            <img src="/static/images/tagline.svg" alt="Tagline" class="header-logo logo-tagline">
+        </div>
+        <!-- PRMSC Logo - Right -->
+        <img src="/static/images/PRMSC Logo PSD (1).png" alt="PRMSC Logo" class="header-logo logo-right">
+    </div>
+    <h2 class="header-system-title">Water Quality Management System</h2>
+</div>
+
+<h1 class="page-title">View Submissions</h1>
+<p class="page-description">Review and manage water quality test submissions</p>
+
+<style>
+    /* Global Styles & Layout for View Submissions Page */
+    .logo-section-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 16px;
+        border: 1px solid rgba(30, 60, 114, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        backdrop-filter: blur(10px);
+    }
+
+    .logo-section-header .logo-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .logo-section-header .logo-left,
+    .logo-section-header .logo-right {
+        width: 100px;
+        height: auto;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+    
+    .logo-section-header .logo-left:hover,
+    .logo-section-header .logo-right:hover {
+        transform: scale(1.05);
+    }
+
+    .logo-section-header .logo-center-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .logo-section-header .logo-title {
+        height: 48px;
+        width: auto;
+    }
+
+    .logo-section-header .logo-tagline {
+        height: 36px;
+        width: auto;
+    }
+
+    .logo-section-header .header-system-title {
+        color: #1e3c72;
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+        padding-top: 15px;
+        border-top: 1px solid rgba(30, 60, 114, 0.1);
+        margin-top: 10px;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 768px) {
+        .logo-section-header .logo-row {
+            gap: 20px;
+        }
+
+        .logo-section-header .logo-left,
+        .logo-section-header .logo-right {
+            width: 70px;
+        }
+
+        .logo-section-header .logo-title {
+            height: 36px;
+        }
+
+        .logo-section-header .logo-tagline {
+            height: 26px;
+        }
+
+        .logo-section-header .header-system-title {
+            font-size: 18px;
+        }
+    }
+
+    .page-title {
+        color: #1e3c72;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        letter-spacing: -0.5px;
+    }
+
+    .page-description {
+        color: #718096;
+        font-size: 15px;
+        margin-bottom: 30px;
+        font-weight: 400;
+    }
+
+    /* Modern Back Button styling */
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(30, 60, 114, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .back-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30, 60, 114, 0.3);
+    }
+    
+    .back-btn i {
+        transition: transform 0.3s ease;
+    }
+    
+    .back-btn:hover i {
+        transform: translateX(-4px);
+    }
+
+    /* Filters Section Card */
+    .filters {
+        background: white;
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        font-size: 12px;
+        color: #4a5568;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+        padding: 11px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        color: #2d3748;
+        background-color: #f8fafc;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .filter-group input:focus,
+    .filter-group select:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    }
+
+    /* Premium Table wrapper & table styling */
+    .table-wrapper {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        margin-bottom: 40px;
+        overflow: auto; /* Enables both horizontal and vertical scroll */
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100vh - 350px); /* Keeps scrollbar on-screen */
+        min-height: 200px;
+        display: block;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+    }
+
+    thead {
+        background: #f8fafc;
+    }
+
+    th {
+        padding: 18px 20px;
+        text-align: left;
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #edf2f7;
+        white-space: normal;
+        vertical-align: middle;
+        position: sticky;
+        top: 0;
+        background: #f8fafc;
+        z-index: 10;
+        box-shadow: inset 0 -2px 0 #edf2f7;
+    }
+
+    td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #edf2f7;
+        font-size: 14px;
+        color: #2d3748;
+        vertical-align: middle;
+        white-space: normal;
+    }
+
+    /* Column alignment, wrapping & sizing classes */
+    .col-center {
+        text-align: center !important;
+    }
+    
+    .col-nowrap {
+        white-space: nowrap !important;
+    }
+    
+    .col-sr {
+        width: 44px;
+        min-width: 44px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .col-testid {
+        min-width: 110px;
+        white-space: nowrap !important;
+        font-weight: 600;
+        color: #1e3c72;
+    }
+    
+    .col-village,
+    .col-tehsil {
+        min-width: 140px;
+        max-width: 200px;
+        white-space: normal !important;
+        word-wrap: break-word;
+    }
+    
+    .col-date {
+        min-width: 140px;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+    
+    .col-type {
+        min-width: 160px;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+    
+    .col-workorder {
+        min-width: 130px;
+        text-align: center !important;
+    }
+    
+    .col-quality {
+        min-width: 130px;
+        text-align: center !important;
+    }
+    
+    .col-remarks {
+        min-width: 180px;
+        max-width: 250px;
+        white-space: normal !important;
+        word-wrap: break-word;
+    }
+    
+    .col-overall {
+        min-width: 130px;
+        text-align: center !important;
+    }
+    
+    .col-status {
+        min-width: 120px;
+        text-align: center !important;
+    }
+    
+    .col-report {
+        min-width: 100px;
+        text-align: center !important;
+    }
+    
+    .col-action {
+        min-width: 100px;
+        text-align: center !important;
+    }
+
+    tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    /* Badge Stylings */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    .status-approved {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    .status-pending_review {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .test-type-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .test-type-priority {
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+    }
+
+    .test-type-full {
+        background: #f3e8ff;
+        color: #6b21a8;
+        border: 1px solid #e9d5ff;
+    }
+
+    .baseline-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        padding: 3px 8px;
+        border-radius: 50px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        margin-left: 4px;
+        vertical-align: middle;
+    }
+
+    /* Quality Assessment Badges */
+    .quality-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: capitalize;
+        white-space: nowrap;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    .quality-safe {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #d1fae5;
+    }
+
+    .quality-unsafe {
+        background: #fdf2f2;
+        color: #b91c1c;
+        border: 1px solid #fee2e2;
+    }
+
+    .quality-contaminated {
+        background: #fff5f5;
+        color: #c53030;
+        border: 1px solid #fed7d7;
+    }
+
+    .quality-na {
+        background: #f9fafb;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+    }
+
+    .quality-not-set {
+        color: #a0aec0;
+        font-style: italic;
+    }
+
+    /* Overall Result Badges */
+    .overall-safe {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #d1fae5;
+    }
+
+    .overall-unsafe {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        background: #fdf2f2;
+        color: #b91c1c;
+        border: 1px solid #fee2e2;
+    }
+
+    /* Remarks cell styling - wrapped text */
+    .remarks-cell {
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        word-wrap: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        line-height: 1.4;
+        font-size: 12px;
+        color: #718096;
+    }
+
+    /* Buttons Styling */
+    .actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-view {
+        background: #3b82f6;
+        color: white;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+    }
+
+    .btn-view:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #a0aec0;
+    }
+
+    .empty-state i {
+        font-size: 54px;
+        margin-bottom: 20px;
+        color: #cbd5e0;
+    }
+
+    /* Modal Overlay & Card Styling */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000; /* Higher than sidebar */
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background-color: #f8fafc;
+        margin: 40px auto;
+        padding: 0;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 1200px;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translateY(-30px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 24px 32px;
+        border-radius: 16px 16px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .close {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 28px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        line-height: 1;
+    }
+
+    .close:hover {
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .form-modal-body {
+        padding: 32px;
+        background-color: #f8fafc;
+        max-height: calc(85vh - 150px);
+        overflow-y: auto;
+    }
+
+    /* Modal Form Section Cards */
+    .form-section {
+        background: white;
+        padding: 30px;
+        margin-bottom: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+        border: 1px solid #e2e8f0;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1e3c72;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title i {
+        color: #3b82f6;
+        background: #eff6ff;
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 13px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 11px 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #1e293b;
+        background-color: #f8fafc;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .required {
+        color: #ef4444;
+        font-weight: 700;
+    }
+
+    /* Edit Mode Indicator styling */
+    .edit-mode-indicator {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        padding: 12px 20px;
+        border-radius: 10px;
+        margin-bottom: 24px;
+        display: none;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+        color: #92400e;
+    }
+
+    .edit-mode-indicator.active {
+        display: flex;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+
+    .form-field-readonly {
+        background-color: #f1f5f9 !important;
+        cursor: not-allowed !important;
+        border-color: #e2e8f0 !important;
+        color: #64748b !important;
+    }
+
+    .form-field-editable {
+        background-color: white !important;
+        cursor: text !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08) !important;
+    }
+
+    /* Modal Footer Buttons */
+    .modal-footer {
+        padding: 20px 32px;
+        background: #f1f5f9;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        border-radius: 0 0 16px 16px;
+    }
+
+    .status-badge-large {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 13px;
+        text-transform: uppercase;
+        display: inline-block;
+        letter-spacing: 0.5px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .btn-save {
+        background: #10b981;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-save:hover {
+        background: #059669;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-cancel-edit {
+        background: #64748b;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-cancel-edit:hover {
+        background: #475569;
+        transform: translateY(-1px);
+    }
+
+    .modal-icon-btn {
+        background: white;
+        border: 1px solid #cbd5e1;
+        font-size: 18px;
+        cursor: pointer;
+        color: #64748b;
+        padding: 10px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .modal-icon-btn:hover {
+        background: #f8fafc;
+        color: #1e293b;
+        border-color: #94a3b8;
+        transform: translateY(-1px);
+    }
+
+    .modal-icon-btn.approve {
+        color: #10b981;
+        border-color: #a7f3d0;
+        background: #f0fdf4;
+    }
+
+    .modal-icon-btn.approve:hover {
+        background: #d1fae5;
+        color: #047857;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
+    }
+
+    .modal-icon-btn.reject {
+        color: #ef4444;
+        border-color: #fecaca;
+        background: #fdf2f2;
+    }
+
+    .modal-icon-btn.reject:hover {
+        background: #fee2e2;
+        color: #b91c1c;
+        box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+    }
+
+    .modal-icon-btn.pdf {
+        color: #3b82f6;
+        border-color: #bfdbfe;
+        background: #eff6ff;
+    }
+
+    .modal-icon-btn.pdf:hover {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .modal-icon-btn.close-btn {
+        color: #64748b;
+        border-color: #e2e8f0;
+    }
+
+    .modal-icon-btn.close-btn:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    @media (max-width: 768px) {
+        .filters {
+            flex-direction: column;
+            padding: 16px;
+        }
+
+        .table-wrapper {
+            font-size: 12px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+        }
+
+        .modal-content {
+            margin: 20px auto;
+            width: 95%;
+        }
+
+        .form-modal-body {
+            padding: 20px;
+        }
+
+        .form-section {
+            padding: 20px;
+        }
+    }
+
+    /* Search Bar Styling */
+    .search-container {
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+        padding: 4px 16px;
+        transition: all 0.3s ease;
+    }
+
+    .search-input-wrapper:focus-within {
+        border-color: #3b82f6;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+    }
+
+    .search-input-wrapper .search-icon {
+        color: #94a3b8;
+        font-size: 16px;
+        margin-right: 12px;
+    }
+
+    .search-input-wrapper input {
+        border: none;
+        outline: none;
+        width: 100%;
+        padding: 12px 0;
+        font-size: 15px;
+        color: #1e293b;
+        font-family: inherit;
+        background: transparent;
+    }
+
+    .search-input-wrapper input::placeholder {
+        color: #94a3b8;
+    }
+</style>
+
+<button class="back-btn" onclick="goToDashboard()">
+    <i class="fas fa-arrow-left"></i>
+    Back to Dashboard
+</button>
+
+<div class="search-container">
+    <div class="search-input-wrapper">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="submissionsSearch" placeholder="Search by Test ID, Village, Tehsil, Work Order No, Remarks...">
+    </div>
+</div>
+
+<div class="filters">
+    <div class="filter-group">
+        <label for="filterTehsil">Tehsil</label>
+        <select id="filterTehsil">
+            <option value="">All Tehsils</option>
+            <!-- Options populated dynamically -->
+        </select>
+    </div>
+    <div class="filter-group">
+        <label for="filterVillage">Village</label>
+        <select id="filterVillage">
+            <option value="">All Villages</option>
+            <!-- Options populated dynamically -->
+        </select>
+    </div>
+    <div class="filter-group">
+        <label for="filterTestType">Test Type</label>
+        <select id="filterTestType">
+            <option value="">All Types</option>
+            <!-- Options populated dynamically -->
+        </select>
+    </div>
+    <div class="filter-group">
+        <label for="filterWorkOrderNo">Work Order No</label>
+        <select id="filterWorkOrderNo">
+            <option value="">All Work Orders</option>
+            <!-- Options populated dynamically -->
+        </select>
+    </div>
+    <div class="filter-group" id="statusFilterGroup" style="display: none;">
+        <label for="filterStatus">Status</label>
+        <select id="filterStatus">
+            <option value="pending">Pending Review</option>
+            <option value="all">All Status</option>
+            <option value="submitted">Submitted</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label for="filterOverallResult">Overall Result</label>
+        <select id="filterOverallResult">
+            <option value="">All Results</option>
+            <option value="safe">&#x2705; Safe</option>
+            <option value="unsafe">&#x26A0; Unsafe</option>
+        </select>
+    </div>
+</div>
+
+<div class="table-wrapper">
+    <table id="submissionsTable">
+        <thead>
+            <tr id="tableHeader">
+                <!-- Headers will be populated by JavaScript -->
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Table rows will be populated by JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<!-- Form View Modal -->
+<div id="formViewModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>
+                <i class="fas fa-file-alt"></i>
+                <span id="modalFormTitle">Test Report Details</span>
+            </h2>
+            <span class="close" onclick="closeFormModal()">&times;</span>
+        </div>
+        <div class="form-modal-body">
+            <!-- Edit Mode Indicator -->
+            <div id="editModeIndicator" class="edit-mode-indicator">
+                <i class="fas fa-edit"></i>
+                <span>Edit Mode Active - You can now modify the form fields</span>
+            </div>
+
+            <!-- Form Container -->
+            <div id="modalFormContainer">
+                <form id="modalWaterTestForm" novalidate>
+                    <!-- Form sections will be dynamically loaded here -->
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div id="modalStatusBadge" class="status-badge-large"></div>
+            <div style="flex: 1;"></div>
+            <button type="button" id="btnSave" class="btn-save" onclick="saveChanges()" style="display: none;">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+            <button type="button" id="btnCancelEdit" class="btn-cancel-edit" onclick="cancelEdit()" style="display: none;">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button type="button" id="btnEdit" class="modal-icon-btn" onclick="enableEditMode()" title="Edit" style="display: none;">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button type="button" id="btnApprove" class="modal-icon-btn approve" onclick="approveFromModal()" title="Approve" style="display: none;">
+                <i class="fas fa-check-circle"></i>
+            </button>
+            <button type="button" id="btnReject" class="modal-icon-btn reject" onclick="rejectFromModal()" title="Reject" style="display: none;">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            <button type="button" class="modal-icon-btn pdf" onclick="downloadReportPDF(currentReportId)" title="Download PDF">
+                <i class="fas fa-file-pdf"></i>
+            </button>
+            <button type="button" id="btnClose" class="modal-icon-btn close-btn" onclick="closeFormModal()" title="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script>
+    // Check if SweetAlert2 loaded successfully
+    if (typeof Swal === 'undefined') {
+        console.error('SweetAlert2 failed to load from CDN. Creating fallback...');
+        window.Swal = {
+            fire: function (title, text, icon) {
+                if (typeof title === 'object') {
+                    // Handle object parameter
+                    const options = title;
+                    return new Promise((resolve) => {
+                        const message = options.text || options.title || '';
+                        const confirmed = confirm(message);
+                        resolve({ isConfirmed: confirmed, value: options.input ? prompt(options.inputLabel || '') : null });
+                    });
+                } else {
+                    // Handle simple parameters
+                    alert((title || '') + '\n' + (text || ''));
+                    return Promise.resolve({ isConfirmed: true });
+                }
+            }
+        };
+    }
+
+    // IIFE to avoid "already declared" errors on SPA navigation
+    (function () {
+        'use strict';
+
+        // Use window properties to persist data across navigation
+        if (!window.viewSubmissionsCurrentUser) {
+            window.viewSubmissionsCurrentUser = null;
+        }
+        if (!window.viewSubmissionsAllSubmissions) {
+            window.viewSubmissionsAllSubmissions = [];
+        }
+        // Persist currentReportId on window so it survives IIFE re-runs on SPA re-navigation
+        if (window.viewSubmissionsCurrentReportId === undefined) {
+            window.viewSubmissionsCurrentReportId = null;
+        }
+        let currentUser = window.viewSubmissionsCurrentUser;
+        let allSubmissions = window.viewSubmissionsAllSubmissions;
+        let currentReportId = window.viewSubmissionsCurrentReportId;
+
+        // Load current user info
+        async function loadCurrentUser() {
+            try {
+                console.log('🔄 Loading current user...');
+                const response = await fetch('/api/auth/user');
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUser = window.viewSubmissionsCurrentUser = data.user;
+                    console.log('✅ User loaded:', currentUser.name, '-', currentUser.role_display_name);
+
+                    // Show status filter only for approvers
+                    if (currentUser.can_view_status_column) {
+                        const statusGroup = document.getElementById('statusFilterGroup');
+                        if (statusGroup) {
+                            statusGroup.style.display = 'flex';
+                            
+                            const filterStatus = document.getElementById('filterStatus');
+                            if (filterStatus) {
+                                // Add event listener to reload when status filter changes
+                                filterStatus.addEventListener('change', () => {
+                                    console.log('🔄 Status filter changed to:', filterStatus.value);
+                                    loadSubmissions();
+                                });
+                            }
+                        }
+                    }
+
+                    console.log('🔄 Loading submissions...');
+                    setupFilterListeners();
+                    loadSubmissions();
+                } else {
+                    console.warn('⚠️ User authentication failed, redirecting to login...');
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('❌ Error loading user:', error);
+                window.location.href = '/login';
+            }
+        }
+
+        // Load submissions based on user role
+        async function loadSubmissions() {
+            try {
+                // Show loading state
+                const tableBody = document.getElementById('tableBody');
+                if (tableBody) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="12" style="text-align: center; padding: 40px;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #667eea;"></i>
+                                <p style="margin-top: 10px; color: #666;">Loading submissions...</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                // Use the NEW test-reports endpoint
+                let endpoint = '/api/test-reports';
+
+                // Add filter parameters based on user role and status filter selection
+                const params = new URLSearchParams();
+
+                if (currentUser.can_view_status_column) {
+                    // Get status from dropdown
+                    const statusFilter = document.getElementById('filterStatus');
+                    const selectedStatus = statusFilter ? statusFilter.value : 'pending';
+
+                    // Map dropdown values to API status parameters
+                    if (selectedStatus === 'pending') {
+                        params.append('status', 'submitted,pending_review');
+                    } else if (selectedStatus === 'all') {
+                        params.append('status', 'submitted,pending_review,approved,rejected');
+                    } else if (selectedStatus) {
+                        params.append('status', selectedStatus);
+                    }
+                }
+
+                const url = params.toString() ? `${endpoint}?${params}` : endpoint;
+                console.log('📡 Fetching submissions from:', url);
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                console.log('📦 API Response:', data);
+
+                if (data.success) {
+                    // Create deep copies of each report to avoid reference issues
+                    allSubmissions = window.viewSubmissionsAllSubmissions = (data.reports || []).map(report => JSON.parse(JSON.stringify(report)));
+                    console.log('✅ Loaded submissions:', allSubmissions.length);
+
+                    // Debug: Check if quality_assessment data is present
+                    if (allSubmissions.length > 0) {
+                        console.log('📊 Sample submission data:', allSubmissions[0]);
+                        console.log('🔬 Quality assessment in first submission:', allSubmissions[0].quality_assessment);
+                    }
+
+                    renderTable();
+                } else {
+                    console.error('❌ Failed to load submissions:', data.message);
+                    showError('Failed to load submissions: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('❌ Error loading submissions:', error);
+                showError('Error loading submissions: ' + error.message);
+            }
+        }
+
+        // Helper function to generate quality badge HTML
+        function getQualityBadge(value) {
+            if (!value || value === null || value === undefined) {
+                return '<span class="quality-not-set">-</span>';
+            }
+
+            const valueLower = value.toLowerCase();
+            let badgeClass = '';
+            let displayText = value.charAt(0).toUpperCase() + value.slice(1);
+
+            if (valueLower === 'safe') {
+                badgeClass = 'quality-safe';
+            } else if (valueLower === 'unsafe') {
+                badgeClass = 'quality-unsafe';
+            } else if (valueLower === 'contaminated') {
+                badgeClass = 'quality-contaminated';
+            } else if (valueLower === 'n/a') {
+                badgeClass = 'quality-na';
+                displayText = 'N/A';
+            } else {
+                badgeClass = 'quality-na';
+            }
+
+            return `<span class="quality-badge ${badgeClass}">${displayText}</span>`;
+        }
+
+        // Render table based on user role
+        function renderTable() {
+            console.log('🎨 renderTable() called');
+            console.log('📊 Number of submissions to render:', allSubmissions.length);
+            console.log('👤 Current user:', currentUser);
+
+            const isApprover = currentUser.can_view_status_column;
+            const isPCRWR = !isApprover;
+
+            // Set table headers
+            const headerRow = document.getElementById('tableHeader');
+            if (!headerRow) {
+                console.error('❌ tableHeader element not found!');
+                return;
+            }
+            headerRow.innerHTML = '';
+
+            const headers = isPCRWR
+                ? ['Sr.', 'Test ID', 'Village', 'Tehsil', 'Submission Date', 'Test Type', 'Work Order No', 'Physical Quality', 'Chemical Quality', 'Trace Elements Quality', 'Microbial Quality', 'Remarks', 'Overall Result', 'Report']
+                : ['Sr.', 'Test ID', 'Village', 'Tehsil', 'Submission Date', 'Test Type', 'Work Order No', 'Physical Quality', 'Chemical Quality', 'Trace Elements Quality', 'Microbial Quality', 'Remarks', 'Overall Result', 'Status', 'Report', 'Actions'];
+
+            const columnStyles = {
+                'Sr.': 'col-sr',
+                'Test ID': 'col-testid',
+                'Village': 'col-village',
+                'Tehsil': 'col-tehsil',
+                'Submission Date': 'col-date',
+                'Test Type': 'col-type',
+                'Work Order No': 'col-workorder',
+                'Physical Quality': 'col-quality',
+                'Chemical Quality': 'col-quality',
+                'Trace Elements Quality': 'col-quality',
+                'Microbial Quality': 'col-quality',
+                'Remarks': 'col-remarks',
+                'Overall Result': 'col-overall',
+                'Status': 'col-status',
+                'Report': 'col-report',
+                'Actions': 'col-action'
+            };
+
+            console.log('📋 Table headers:', headers);
+
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                const styleClass = columnStyles[header] || '';
+                if (styleClass) {
+                    th.className = styleClass;
+                }
+                headerRow.appendChild(th);
+            });
+
+            // Populate table body
+            const tableBody = document.getElementById('tableBody');
+            if (!tableBody) {
+                console.error('tableBody element not found!');
+                return;
+            }
+            tableBody.innerHTML = '';
+
+            if (allSubmissions.length === 0) {
+                console.log('ℹ️ No submissions to display');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="${headers.length}" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>No submissions found</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            console.log('✅ Rendering', allSubmissions.length, 'submissions...');
+
+            allSubmissions.forEach((submission, index) => {
+                const row = document.createElement('tr');
+                const testId = submission.report_serial_no || `TEST-${String(submission.report_id).padStart(5, '0')}`;
+                const testDate = submission.sampling_datetime ? new Date(submission.sampling_datetime).toLocaleDateString() : '-';
+                // Tag row index for filter reference
+                row.dataset.submissionIndex = index;
+
+                // Get test type badge
+                const formType = submission.form_type || 'priority';
+                const testTypeClass = `test-type-${formType}`;
+                const testTypeText = formType === 'priority' ? 'Priority Parameters' : 'Full Parameters';
+                const isBaseline = (submission.report_category === 'baseline_report');
+                const categoryBadge = isBaseline
+                    ? `<span class="baseline-badge"><i class="fas fa-bookmark" style="font-size:9px;"></i> Baseline</span>`
+                    : `<span class="baseline-badge" style="background:#5a67d8;color:#fff;border-color:#4c51bf;"><i class="fas fa-flask" style="font-size:9px;"></i> Post-intervention</span>`;
+                const testTypeBadge = `<span class="test-type-badge ${testTypeClass}">${testTypeText}</span>${categoryBadge}`;
+
+                // Get quality assessment data
+                const qa = submission.quality_assessment || {};
+
+                // Determine quality values based on form type
+                let physicalQuality, chemicalQuality, traceElementsQuality, microbialQuality;
+
+                if (formType === 'priority') {
+                    // Priority Parameters: Only Physical and Microbial
+                    physicalQuality = getQualityBadge(qa.physical_quality);
+                    chemicalQuality = getQualityBadge('N/A');
+                    traceElementsQuality = getQualityBadge('N/A');
+                    microbialQuality = getQualityBadge(qa.microbial_quality);
+                } else {
+                    // Full Parameters: All four quality assessments
+                    physicalQuality = getQualityBadge(qa.physical_quality);
+                    chemicalQuality = getQualityBadge(qa.chemical_quality);
+                    traceElementsQuality = getQualityBadge(qa.trace_elements_quality);
+                    microbialQuality = getQualityBadge(qa.microbial_quality);
+                }
+
+                // Get remarks (wrapped text display)
+                const remarks = qa.remarks || '-';
+                const remarksDisplay = `<span class="remarks-cell" title="${remarks}">${remarks}</span>`;
+
+                // Calculate Overall Result - unsafe if ANY quality field is "unsafe"
+                let overallResult = 'safe';
+                const qualityFields = formType === 'priority'
+                    ? [qa.physical_quality, qa.microbial_quality]
+                    : [qa.physical_quality, qa.chemical_quality, qa.trace_elements_quality, qa.microbial_quality];
+
+                for (const q of qualityFields) {
+                    if (q && q.toLowerCase() === 'unsafe') {
+                        overallResult = 'unsafe';
+                        break;
+                    }
+                }
+                const overallResultBadge = `<span class="overall-${overallResult}">${overallResult.toUpperCase()}</span>`;
+                // Stamp the computed result onto the row for the filter to read
+                row.dataset.overallResult = overallResult;
+
+                // Download Button
+                const downloadBtn = `
+                    <button class="btn" style="background: #667eea; color: white; padding: 6px 10px;" onclick="downloadReportPDF(${submission.report_id})" title="Download PDF">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </button>
+                `;
+
+                if (isPCRWR) {
+                    // PCRWR User
+                    row.innerHTML = `
+                        <td class="${columnStyles['Sr.']}" style="text-align:center;font-weight:600;color:#64748b;">${index + 1}</td>
+                        <td class="${columnStyles['Test ID']}">${testId}</td>
+                        <td class="${columnStyles['Village']}">${submission.village || '-'}</td>
+                        <td class="${columnStyles['Tehsil']}">${submission.tehsil || '-'}</td>
+                        <td class="${columnStyles['Submission Date']}">${testDate}</td>
+                        <td class="${columnStyles['Test Type']}">${testTypeBadge}</td>
+                        <td class="${columnStyles['Work Order No']}">${submission.work_order_no || '-'}</td>
+                        <td class="${columnStyles['Physical Quality']}">${physicalQuality}</td>
+                        <td class="${columnStyles['Chemical Quality']}">${chemicalQuality}</td>
+                        <td class="${columnStyles['Trace Elements Quality']}">${traceElementsQuality}</td>
+                        <td class="${columnStyles['Microbial Quality']}">${microbialQuality}</td>
+                        <td class="${columnStyles['Remarks']}">${remarksDisplay}</td>
+                        <td class="${columnStyles['Overall Result']}">${overallResultBadge}</td>
+                        <td class="${columnStyles['Report']}">${downloadBtn}</td>
+                    `;
+                } else {
+                    // Approver
+                    const statusClass = `status-${submission.status}`;
+                    const statusText = submission.status.replace('_', ' ').toUpperCase();
+
+                    row.innerHTML = `
+                        <td class="${columnStyles['Sr.']}" style="text-align:center;font-weight:600;color:#64748b;">${index + 1}</td>
+                        <td class="${columnStyles['Test ID']}">${testId}</td>
+                        <td class="${columnStyles['Village']}">${submission.village || '-'}</td>
+                        <td class="${columnStyles['Tehsil']}">${submission.tehsil || '-'}</td>
+                        <td class="${columnStyles['Submission Date']}">${testDate}</td>
+                        <td class="${columnStyles['Test Type']}">${testTypeBadge}</td>
+                        <td class="${columnStyles['Work Order No']}">${submission.work_order_no || '-'}</td>
+                        <td class="${columnStyles['Physical Quality']}">${physicalQuality}</td>
+                        <td class="${columnStyles['Chemical Quality']}">${chemicalQuality}</td>
+                        <td class="${columnStyles['Trace Elements Quality']}">${traceElementsQuality}</td>
+                        <td class="${columnStyles['Microbial Quality']}">${microbialQuality}</td>
+                        <td class="${columnStyles['Remarks']}">${remarksDisplay}</td>
+                        <td class="${columnStyles['Overall Result']}">${overallResultBadge}</td>
+                        <td class="${columnStyles['Status']}"><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td class="${columnStyles['Report']}">${downloadBtn}</td>
+                        <td class="${columnStyles['Actions']}">
+                            <div class="actions">
+                                <button class="btn btn-view" onclick="viewDetails(${submission.report_id})">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                }
+
+                tableBody.appendChild(row);
+            });
+
+            console.log('✅ renderTable() completed successfully!');
+            console.log('📊 Table now has', tableBody.children.length, 'rows');
+
+            // Populate filter dropdowns after rendering
+            populateFilterDropdowns();
+        }
+
+        // Populate filter dropdowns based on actual data
+        function populateFilterDropdowns() {
+            const tehsilSet = new Set();
+            const villageSet = new Set();
+            const testTypeSet = new Set();
+            const workOrderSet = new Set();
+
+            // Collect unique values from all submissions
+            allSubmissions.forEach(submission => {
+                if (submission.tehsil) tehsilSet.add(submission.tehsil);
+                if (submission.village) villageSet.add(submission.village);
+                if (submission.form_type) testTypeSet.add(submission.form_type);
+                if (submission.work_order_no) workOrderSet.add(submission.work_order_no);
+            });
+
+            // Populate Tehsil dropdown
+            const tehsilSelect = document.getElementById('filterTehsil');
+            if (tehsilSelect) {
+                const currentValue = tehsilSelect.value;
+                tehsilSelect.innerHTML = '<option value="">All Tehsils</option>';
+                Array.from(tehsilSet).sort().forEach(tehsil => {
+                    const option = document.createElement('option');
+                    option.value = tehsil;
+                    option.textContent = tehsil;
+                    tehsilSelect.appendChild(option);
+                });
+                tehsilSelect.value = currentValue; // Preserve selection
+            }
+
+            // Populate Village dropdown
+            const villageSelect = document.getElementById('filterVillage');
+            if (villageSelect) {
+                const currentValue = villageSelect.value;
+                villageSelect.innerHTML = '<option value="">All Villages</option>';
+                Array.from(villageSet).sort().forEach(village => {
+                    const option = document.createElement('option');
+                    option.value = village;
+                    option.textContent = village;
+                    villageSelect.appendChild(option);
+                });
+                villageSelect.value = currentValue; // Preserve selection
+            }
+
+            // Populate Test Type dropdown
+            const testTypeSelect = document.getElementById('filterTestType');
+            if (testTypeSelect) {
+                const currentValue = testTypeSelect.value;
+                testTypeSelect.innerHTML = '<option value="">All Types</option>';
+                Array.from(testTypeSet).sort().forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type === 'priority' ? 'Priority Parameters' : 'Full Parameters';
+                    testTypeSelect.appendChild(option);
+                });
+                testTypeSelect.value = currentValue; // Preserve selection
+            }
+
+            // Populate Work Order No dropdown
+            const workOrderSelect = document.getElementById('filterWorkOrderNo');
+            if (workOrderSelect) {
+                const currentValue = workOrderSelect.value;
+                workOrderSelect.innerHTML = '<option value="">All Work Orders</option>';
+
+                // Add static values 1-500
+                for (let i = 1; i <= 500; i++) {
+                    const option = document.createElement('option');
+                    option.value = i.toString();
+                    option.textContent = i.toString();
+                    workOrderSelect.appendChild(option);
+                }
+
+                // Also add any database values that are not in 1-500 range
+                Array.from(workOrderSet).forEach(workOrder => {
+                    const workOrderNum = parseInt(workOrder);
+                    if (isNaN(workOrderNum) || workOrderNum < 1 || workOrderNum > 500) {
+                        const option = document.createElement('option');
+                        option.value = workOrder;
+                        option.textContent = workOrder;
+                        workOrderSelect.appendChild(option);
+                    }
+                });
+
+                workOrderSelect.value = currentValue; // Preserve selection
+            }
+        }
+
+        // Apply filters and search to the table
+        function applyFilters() {
+            const tehsilFilter = document.getElementById('filterTehsil')?.value?.toLowerCase() || '';
+            const villageFilter = document.getElementById('filterVillage')?.value?.toLowerCase() || '';
+            const testTypeFilter = document.getElementById('filterTestType')?.value?.toLowerCase() || '';
+            const workOrderFilter = document.getElementById('filterWorkOrderNo')?.value?.toLowerCase() || '';
+            const overallResultFilter = document.getElementById('filterOverallResult')?.value?.toLowerCase() || '';
+            const searchQuery = document.getElementById('submissionsSearch')?.value?.toLowerCase() || '';
+
+            const tableBody = document.getElementById('tableBody');
+            if (!tableBody) return;
+
+            const rows = tableBody.querySelectorAll('tr');
+
+            rows.forEach((row) => {
+                if (row.querySelector('.empty-state') || row.querySelector('.fa-spinner')) {
+                    return; // Skip loading/empty rows
+                }
+
+                // Use the submission index stamped on the row during rendering
+                const idx = parseInt(row.dataset.submissionIndex, 10);
+                const submission = isNaN(idx) ? null : allSubmissions[idx];
+                if (!submission) return;
+
+                // Match dropdown filters
+                const tehsilMatch = !tehsilFilter || (submission.tehsil && submission.tehsil.toLowerCase() === tehsilFilter);
+                const villageMatch = !villageFilter || (submission.village && submission.village.toLowerCase() === villageFilter);
+                const testTypeMatch = !testTypeFilter || (submission.form_type && submission.form_type.toLowerCase() === testTypeFilter);
+                const workOrderMatch = !workOrderFilter || (submission.work_order_no && submission.work_order_no.toLowerCase() === workOrderFilter);
+
+                // Match Overall Result filter — read from the data attribute stamped during render
+                const rowOverallResult = (row.dataset.overallResult || '').toLowerCase();
+                const overallResultMatch = !overallResultFilter || rowOverallResult === overallResultFilter;
+
+                // Match search query across all readable columns (from DOM text)
+                let searchMatch = true;
+                if (searchQuery) {
+                    const cells = Array.from(row.querySelectorAll('td'));
+                    const searchableTexts = cells
+                        .filter(cell => !cell.querySelector('button') && !cell.querySelector('.actions') && !cell.classList.contains('col-report') && !cell.classList.contains('col-action'))
+                        .map(cell => cell.textContent.trim().toLowerCase());
+
+                    const searchTerms = searchQuery.split(/\s+/).filter(term => term.length > 0);
+                    searchMatch = searchTerms.every(term =>
+                        searchableTexts.some(text => text.includes(term))
+                    );
+                }
+
+                row.style.display = (tehsilMatch && villageMatch && testTypeMatch && workOrderMatch && overallResultMatch && searchMatch) ? '' : 'none';
+            });
+        }
+
+        // Add filter event listeners
+        function setupFilterListeners() {
+            const filterTehsil = document.getElementById('filterTehsil');
+            const filterVillage = document.getElementById('filterVillage');
+            const filterTestType = document.getElementById('filterTestType');
+            const filterWorkOrderNo = document.getElementById('filterWorkOrderNo');
+            const filterOverallResult = document.getElementById('filterOverallResult');
+            const submissionsSearch = document.getElementById('submissionsSearch');
+
+            if (filterTehsil) {
+                filterTehsil.addEventListener('change', applyFilters);
+            }
+            if (filterVillage) {
+                filterVillage.addEventListener('change', applyFilters);
+            }
+            if (filterTestType) {
+                filterTestType.addEventListener('change', applyFilters);
+            }
+            if (filterWorkOrderNo) {
+                filterWorkOrderNo.addEventListener('change', applyFilters);
+            }
+            if (filterOverallResult) {
+                filterOverallResult.addEventListener('change', applyFilters);
+            }
+            if (submissionsSearch) {
+                submissionsSearch.addEventListener('input', applyFilters);
+            }
+        }
+
+        // View submission details - open modal with form
+        let currentReportData = null;
+        let isEditMode = false;
+        let originalFormData = null;
+
+        async function viewDetails(testId) {
+            console.log('Opening form modal for test report:', testId);
+            currentReportId = window.viewSubmissionsCurrentReportId = testId;
+            isEditMode = false;
+
+            try {
+                // Fetch report data
+                const response = await fetch(`/api/test-reports/${testId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    currentReportData = data.report;
+                    originalFormData = JSON.parse(JSON.stringify(data.report)); // Deep copy
+
+                    // Update modal title
+                    const formType = data.report.form_type === 'priority' ? 'Priority Parameters' : 'Full Parameters';
+                    document.getElementById('modalFormTitle').textContent = `Test Report - ${formType}`;
+
+                    // Load form structure and populate data
+                    await loadFormStructure(data.report.form_type);
+                    populateModalForm(data.report);
+
+                    // Update status badge
+                    updateModalStatusBadge(data.report.status);
+
+                    // Update action buttons
+                    updateModalButtons(data.report);
+
+                    // Make form read-only initially
+                    setFormReadOnly(true);
+
+                    // Show modal
+                    document.getElementById('formViewModal').style.display = 'block';
+                    document.getElementById('modalFormContainer').classList.add('active');
+                } else {
+                    Swal.fire('Error', 'Failed to load report: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error loading report:', error);
+                Swal.fire('Error', 'Error loading report: ' + error.message, 'error');
+            }
+        }
+
+        // Close form modal
+        function closeFormModal() {
+            console.log('closeFormModal() called, isEditMode:', isEditMode);
+            if (isEditMode) {
+                Swal.fire({
+                    title: 'Discard Changes?',
+                    text: 'You have unsaved changes. Are you sure you want to close?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#f44336',
+                    cancelButtonColor: '#999',
+                    confirmButtonText: 'Yes, Discard'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('formViewModal').style.display = 'none';
+                        document.getElementById('modalFormContainer').classList.remove('active');
+                        isEditMode = false;
+                        currentReportId = window.viewSubmissionsCurrentReportId = null;
+                        currentReportData = null;
+                    }
+                });
+            } else {
+                document.getElementById('formViewModal').style.display = 'none';
+                document.getElementById('modalFormContainer').classList.remove('active');
+                currentReportId = window.viewSubmissionsCurrentReportId = null;
+                currentReportData = null;
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('formViewModal');
+            if (event.target === modal) {
+                closeFormModal();
+            }
+        }
+
+        // Load form structure based on form type
+        async function loadFormStructure(formType) {
+            const formContainer = document.getElementById('modalWaterTestForm');
+
+            // Create basic form sections (I'll add more in the next chunk)
+            let formHTML = `
+                <!-- SECTION 1: TEST REPORT INFORMATION -->
+                <div class="form-section" data-form-type="both">
+                    <div class="section-title">
+                        <i class="fas fa-file-alt"></i> TEST REPORT CHEMICAL AND MICROBIOLOGY
+                    </div>
+
+                    <!-- Row 1: Report Serial No & Total Pages -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_reportSerialNo">Report Serial No: <span class="required">*</span></label>
+                            <input type="text" id="m_reportSerialNo" name="reportSerialNo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_totalPages">Total no. of pages: <span class="required">*</span></label>
+                            <input type="number" id="m_totalPages" name="totalPages" min="1" required>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Customer Name & Address -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_customerNameAddress">Customer Name & Address: <span class="required">*</span></label>
+                            <textarea id="m_customerNameAddress" name="customerNameAddress" rows="2" required style="min-height: 60px;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Row 2.5: Sample Type -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_sampleType">Sample Type: <span class="required">*</span></label>
+                            <select id="m_sampleType" name="sampleType" required>
+                                <option value="">-- Select Sample Type --</option>
+                                <option value="source_well">Source Well</option>
+                                <option value="pov_tab">POV (Tab)</option>
+                                <option value="ohr">OHR</option>
+                                <option value="all">ALL</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Sampling Date & Time, Customer Code -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_samplingDateTime">Sampling Date and Time: <span class="required">*</span></label>
+                            <input type="datetime-local" id="m_samplingDateTime" name="samplingDateTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_customerCode">Customer Code: <span class="required">*</span></label>
+                            <input type="text" id="m_customerCode" name="customerCode" required>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: NWQL Sample Code, Sample Receipt Date & Time -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_nwqlSampleCode">NWQL Sample Code: <span class="required">*</span></label>
+                            <input type="text" id="m_nwqlSampleCode" name="nwqlSampleCode" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_sampleReceiptDateTime">Sample Receipt Date and Time: <span class="required">*</span></label>
+                            <input type="datetime-local" id="m_sampleReceiptDateTime" name="sampleReceiptDateTime" required>
+                        </div>
+                    </div>
+
+                    <!-- Row 5: Temperature & Humidity -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_temperatureAtReceipt">Temperature of Sample at receipt °C: <span class="required">*</span></label>
+                            <input type="number" id="m_temperatureAtReceipt" name="temperatureAtReceipt" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_humidityAtReceipt">Humidity (%) at Receipt: <span class="required">*</span></label>
+                            <input type="number" id="m_humidityAtReceipt" name="humidityAtReceipt" min="0" max="100" step="0.1" required>
+                        </div>
+                    </div>
+
+                    <!-- Row 6: Date of Analysis -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_analysisDateFrom">Date(s) of Analysis: <span class="required">*</span></label>
+                            <input type="date" id="m_analysisDateFrom" name="analysisDateFrom" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_analysisDateTo">to</label>
+                            <input type="date" id="m_analysisDateTo" name="analysisDateTo">
+                        </div>
+                    </div>
+
+                    <!-- Row 7: Reporting Date, GPS -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_reportingDate">Reporting Date: <span class="required">*</span></label>
+                            <input type="date" id="m_reportingDate" name="reportingDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_gpsLatitude">GPS: Latitude</label>
+                            <input type="number" id="m_gpsLatitude" name="gpsLatitude" step="0.0001">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_gpsLongitude">Longitude</label>
+                            <input type="number" id="m_gpsLongitude" name="gpsLongitude" step="0.0001">
+                        </div>
+                    </div>
+
+                    <!-- Row 8: Location & Work Order No -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_location">Location: <span class="required">*</span></label>
+                            <input type="text" id="m_location" name="location" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_workOrderNo">Work Order No.: <span class="required">*</span></label>
+                            <input type="text" id="m_workOrderNo" name="workOrderNo" required>
+                        </div>
+                    </div>
+
+                    <!-- Row 9: Tehsil Selection -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_tehsil">Select Tehsil: <span class="required">*</span></label>
+                            <input type="text" id="m_tehsil" name="tehsil" required>
+                        </div>
+                    </div>
+
+                    <!-- Row 10: Village Selection -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_village">Select Village: <span class="required">*</span></label>
+                            <input type="text" id="m_village" name="village" required>
+                        </div>
+                    </div>
+
+                    <!-- Row 11: Settlement Selection -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_settlement">Select Settlement: <span class="required">*</span></label>
+                            <input type="text" id="m_settlement" name="settlement" required>
+                        </div>
+                    </div>
+
+                    <!-- Row 12: Total Number of Samples -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_totalSamples">Total Number of Samples: <span class="required">*</span></label>
+                            <input type="number" id="m_totalSamples" name="totalSamples" min="1" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: PHYSICAL AND AESTHETIC PARAMETERS -->
+                <div class="form-section" data-form-type="both">
+                    <div class="section-title">
+                        <i class="fas fa-eye"></i> PHYSICAL AND AESTHETIC PARAMETERS
+                    </div>
+
+                    <!-- Row 1: pH & Electrical Conductivity -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_ph">pH: <span class="required">*</span></label>
+                            <input type="number" step="0.01" id="m_ph" name="ph" min="0" max="14" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_electricalConductivity">Electrical Conductivity (EC) (μS/cm):</label>
+                            <input type="number" step="0.1" id="m_electricalConductivity" name="electricalConductivity" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Temperature & Color -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_temperature">Temperature (°C):</label>
+                            <input type="number" step="0.1" id="m_temperature" name="temperature">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_color">Color:</label>
+                            <select id="m_color" name="color">
+                                <option value="">-- Select Color --</option>
+                                <option value="objectionable">Objectionable</option>
+                                <option value="non-objectionable">Non-objectionable</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Odour & Taste -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_odour">Odour:</label>
+                            <select id="m_odour" name="odour">
+                                <option value="">-- Select Odour --</option>
+                                <option value="objectionable">Objectionable</option>
+                                <option value="non-objectionable">Non-objectionable</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_taste">Taste:</label>
+                            <select id="m_taste" name="taste">
+                                <option value="">-- Select Taste --</option>
+                                <option value="objectionable">Objectionable</option>
+                                <option value="non-objectionable">Non-objectionable</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Suspended Solids & Total Dissolved Solids -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_suspendedSolids">Suspended Solids (mg/L):</label>
+                            <input type="number" step="0.01" id="m_suspendedSolids" name="suspendedSolids" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_totalDissolvedSolids">Total Dissolved Solids (mg/L):</label>
+                            <input type="number" step="0.1" id="m_totalDissolvedSolids" name="totalDissolvedSolids" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 5: Turbidity -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_turbidity">Turbidity (NTU):</label>
+                            <input type="number" step="0.01" id="m_turbidity" name="turbidity" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: MAJOR CHEMICAL PARAMETERS (Full Parameters Only) -->
+                <div class="form-section" data-form-type="full">
+                    <div class="section-title">
+                        <i class="fas fa-flask"></i> MAJOR CHEMICAL PARAMETERS
+                    </div>
+
+                    <!-- Row 1: Alkalinity as CaCO3 & Bicarbonates -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_alkalinityCaco3">Alkalinity as CaCO3 (mg/L):</label>
+                            <input type="number" step="0.1" id="m_alkalinityCaco3" name="alkalinityCaco3" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_bicarbonates">Bicarbonates (mg/L):</label>
+                            <input type="number" step="0.1" id="m_bicarbonates" name="bicarbonates" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Calcium & Carbonates -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_calcium">Calcium (mg/L):</label>
+                            <input type="number" step="0.1" id="m_calcium" name="calcium" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_carbonates">Carbonates (mg/L):</label>
+                            <input type="number" step="0.1" id="m_carbonates" name="carbonates" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Chlorides & Total Hardness -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_chlorides">Chlorides (mg/L):</label>
+                            <input type="number" step="0.1" id="m_chlorides" name="chlorides" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_totalHardness">Total Hardness (mg/L):</label>
+                            <input type="number" step="0.1" id="m_totalHardness" name="totalHardness" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Magnesium & Potassium -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_magnesium">Magnesium (mg/L):</label>
+                            <input type="number" step="0.1" id="m_magnesium" name="magnesium" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_potassium">Potassium (mg/L):</label>
+                            <input type="number" step="0.01" id="m_potassium" name="potassium" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 5: Sodium & Sulphate -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_sodium">Sodium (mg/L):</label>
+                            <input type="number" step="0.01" id="m_sodium" name="sodium" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_sulphate">Sulphate (mg/L):</label>
+                            <input type="number" step="0.01" id="m_sulphate" name="sulphate" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 6: Nitrate (N) & Nitrite -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_nitrateN">Nitrate (N) (mg/L):</label>
+                            <input type="number" step="0.01" id="m_nitrateN" name="nitrateN" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_nitrite">Nitrite (mg/L):</label>
+                            <input type="number" step="0.01" id="m_nitrite" name="nitrite" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 7: TDS & Iron -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_tds">TDS (mg/L):</label>
+                            <input type="number" step="1" id="m_tds" name="tds" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_iron">Iron (mg/L):</label>
+                            <input type="number" step="0.01" id="m_iron" name="iron" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 8: Fluoride & Phosphate -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_fluoride">Fluoride (mg/L):</label>
+                            <input type="number" step="0.01" id="m_fluoride" name="fluoride" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_phosphate">Phosphate (mg/L):</label>
+                            <input type="number" step="0.01" id="m_phosphate" name="phosphate" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: TRACE AND ULTRA-TRACE ELEMENTS (Full Parameters Only) -->
+                <div class="form-section" data-form-type="full">
+                    <div class="section-title">
+                        <i class="fas fa-atom"></i> TRACE AND ULTRA-TRACE ELEMENTS
+                    </div>
+
+                    <!-- Row 1: Aluminum & Arsenic -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_aluminum">Aluminum (μg/L):</label>
+                            <input type="number" step="0.01" id="m_aluminum" name="aluminum" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_arsenic">Arsenic (μg/L):</label>
+                            <input type="number" step="0.01" id="m_arsenic" name="arsenic" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Barium & Cadmium -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_barium">Barium (μg/L):</label>
+                            <input type="number" step="0.01" id="m_barium" name="barium" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_cadmium">Cadmium (μg/L):</label>
+                            <input type="number" step="0.01" id="m_cadmium" name="cadmium" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Chromium & Copper -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_chromium">Chromium (μg/L):</label>
+                            <input type="number" step="0.01" id="m_chromium" name="chromium" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_copper">Copper (μg/L):</label>
+                            <input type="number" step="0.01" id="m_copper" name="copper" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Manganese & Molybdenum -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_manganese">Manganese (μg/L):</label>
+                            <input type="number" step="0.01" id="m_manganese" name="manganese" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_molybdenum">Molybdenum (μg/L):</label>
+                            <input type="number" step="0.01" id="m_molybdenum" name="molybdenum" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 5: Nickel & Lead -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_nickel">Nickel (μg/L):</label>
+                            <input type="number" step="0.01" id="m_nickel" name="nickel" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_lead">Lead (μg/L):</label>
+                            <input type="number" step="0.01" id="m_lead" name="lead" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 6: Selenium & Strontium -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_selenium">Selenium (μg/L):</label>
+                            <input type="number" step="0.01" id="m_selenium" name="selenium" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_strontium">Strontium (μg/L):</label>
+                            <input type="number" step="0.01" id="m_strontium" name="strontium" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 7: Zinc & Boron -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_zinc">Zinc (μg/L):</label>
+                            <input type="number" step="0.01" id="m_zinc" name="zinc" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_boron">Boron (mg/L):</label>
+                            <input type="number" step="0.01" id="m_boron" name="boron" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 8: Antimony & Mercury -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_antimony">Antimony (mg/L):</label>
+                            <input type="number" step="0.001" id="m_antimony" name="antimony" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_mercury">Mercury (mg/L):</label>
+                            <input type="number" step="0.0001" id="m_mercury" name="mercury" min="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 9: Cyanide & Silica -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_cyanide">Cyanide (mg/L):</label>
+                            <input type="number" step="0.01" id="m_cyanide" name="cyanide" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="m_silica">Silica (mg/L):</label>
+                            <input type="number" step="0.1" id="m_silica" name="silica" min="0">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SECTION 5: MICROBIOLOGICAL PARAMETERS -->
+                <div class="form-section" data-form-type="both">
+                    <div class="section-title">
+                        <i class="fas fa-bacteria"></i> MICROBIOLOGICAL PARAMETERS
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_totalColiforms">Total Coliforms (MPN/100mL): <span class="required">*</span></label>
+                            <input type="number" step="0.01" id="m_totalColiforms" name="totalColiforms" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_fecalColiforms">Fecal Coliforms (MPN/100mL): <span class="required">*</span></label>
+                            <input type="number" step="0.01" id="m_fecalColiforms" name="fecalColiforms" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_eColi">E. coli (MPN/100mL): <span class="required">*</span></label>
+                            <input type="number" step="0.01" id="m_eColi" name="eColi" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: QUALITY ASSESSMENT -->
+                <div class="form-section" data-form-type="both">
+                    <div class="section-title">
+                        <i class="fas fa-clipboard-check"></i> QUALITY ASSESSMENT
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_physicalQuality">Physical Quality:</label>
+                            <select id="m_physicalQuality" name="physicalQuality">
+                                <option value="">Select...</option>
+                                <option value="safe">Safe</option>
+                                <option value="unsafe">Unsafe</option>
+                            </select>
+                        </div>
+                        <div class="form-group" data-form-type="full">
+                            <label for="m_chemicalQuality">Chemical Quality:</label>
+                            <select id="m_chemicalQuality" name="chemicalQuality">
+                                <option value="">Select...</option>
+                                <option value="safe">Safe</option>
+                                <option value="unsafe">Unsafe</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" data-form-type="full">
+                            <label for="m_traceElementsQuality">Trace Elements Quality:</label>
+                            <select id="m_traceElementsQuality" name="traceElementsQuality">
+                                <option value="">Select...</option>
+                                <option value="safe">Safe</option>
+                                <option value="unsafe">Unsafe</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="m_microbialQuality">Microbial Quality:</label>
+                            <select id="m_microbialQuality" name="microbialQuality">
+                                <option value="">Select...</option>
+                                <option value="safe">Safe</option>
+                                <option value="unsafe">Unsafe</option>
+                                <option value="contaminated">Contaminated</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="m_remarks">Remarks:</label>
+                            <textarea id="m_remarks" name="remarks"></textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            formContainer.innerHTML = formHTML;
+
+            // Apply form type visibility after setting innerHTML
+            applyFormTypeVisibility(formType);
+        }
+
+        // Apply visibility based on form type
+        function applyFormTypeVisibility(formType) {
+            console.log('🔍 Applying form type visibility for:', formType);
+
+            const formContainer = document.getElementById('modalWaterTestForm');
+            if (!formContainer) return;
+
+            // Get all sections with data-form-type attribute
+            const allSections = formContainer.querySelectorAll('[data-form-type]');
+
+            allSections.forEach(section => {
+                const sectionFormType = section.getAttribute('data-form-type');
+
+                if (sectionFormType === 'both') {
+                    // Always show sections marked as 'both'
+                    section.style.display = '';
+                } else if (sectionFormType === 'full') {
+                    // Show only for full form type
+                    section.style.display = formType === 'full' ? '' : 'none';
+                } else if (sectionFormType === 'priority') {
+                    // Show only for priority form type
+                    section.style.display = formType === 'priority' ? '' : 'none';
+                }
+            });
+
+            console.log('✅ Form type visibility applied');
+        }
+
+        // Populate modal form with report data
+        function populateModalForm(report) {
+            console.log('📝 Populating modal form with report data:', report);
+
+            // Section 1: Report Information - ALL FIELDS
+            setModalFieldValue('m_reportSerialNo', report.report_serial_no);
+            setModalFieldValue('m_totalPages', report.total_pages);
+            setModalFieldValue('m_customerNameAddress', report.customer_name_address);
+            setModalFieldValue('m_sampleType', report.sample_type);
+            setModalFieldValue('m_samplingDateTime', formatDateTimeForInput(report.sampling_datetime));
+            setModalFieldValue('m_customerCode', report.customer_code);
+            setModalFieldValue('m_nwqlSampleCode', report.nwql_sample_code);
+            setModalFieldValue('m_sampleReceiptDateTime', formatDateTimeForInput(report.sample_receipt_datetime));
+            setModalFieldValue('m_temperatureAtReceipt', report.temperature_at_receipt);
+            setModalFieldValue('m_humidityAtReceipt', report.humidity_at_receipt);
+            setModalFieldValue('m_analysisDateFrom', formatDateForInput(report.analysis_date_from));
+            setModalFieldValue('m_analysisDateTo', formatDateForInput(report.analysis_date_to));
+            setModalFieldValue('m_reportingDate', formatDateForInput(report.reporting_date));
+            setModalFieldValue('m_gpsLatitude', report.gps_latitude);
+            setModalFieldValue('m_gpsLongitude', report.gps_longitude);
+            setModalFieldValue('m_location', report.location);
+            setModalFieldValue('m_workOrderNo', report.work_order_no);
+            setModalFieldValue('m_tehsil', report.tehsil);
+            setModalFieldValue('m_village', report.village);
+            setModalFieldValue('m_settlement', report.settlement);
+            setModalFieldValue('m_totalSamples', report.total_samples);
+
+            // Section 2: Physical and Aesthetic Parameters - ALL 9 FIELDS
+            if (report.physical_params) {
+                console.log('📊 Physical params data:', report.physical_params);
+                console.log('   - suspended_solids:', report.physical_params.suspended_solids);
+                console.log('   - total_dissolved_solids:', report.physical_params.total_dissolved_solids);
+                setModalFieldValue('m_ph', report.physical_params.ph);
+                setModalFieldValue('m_electricalConductivity', report.physical_params.electrical_conductivity);
+                setModalFieldValue('m_temperature', report.physical_params.temperature);
+                setModalFieldValue('m_color', report.physical_params.color);
+                setModalFieldValue('m_odour', report.physical_params.odour);
+                setModalFieldValue('m_taste', report.physical_params.taste);
+                setModalFieldValue('m_suspendedSolids', report.physical_params.suspended_solids);
+                setModalFieldValue('m_totalDissolvedSolids', report.physical_params.total_dissolved_solids);
+                setModalFieldValue('m_turbidity', report.physical_params.turbidity);
+            } else {
+                console.warn('⚠️ No physical_params in report data');
+            }
+
+            // Section 3: Chemical Parameters (Full mode only) - ALL 16 FIELDS
+            if (report.chemical_params) {
+                console.log('🧪 Chemical params data:', report.chemical_params);
+                setModalFieldValue('m_alkalinityCaco3', report.chemical_params.alkalinity_caco3);
+                setModalFieldValue('m_bicarbonates', report.chemical_params.bicarbonates);
+                setModalFieldValue('m_calcium', report.chemical_params.calcium);
+                setModalFieldValue('m_carbonates', report.chemical_params.carbonates);
+                setModalFieldValue('m_chlorides', report.chemical_params.chlorides);
+                setModalFieldValue('m_totalHardness', report.chemical_params.total_hardness);
+                setModalFieldValue('m_magnesium', report.chemical_params.magnesium);
+                setModalFieldValue('m_potassium', report.chemical_params.potassium);
+                setModalFieldValue('m_sodium', report.chemical_params.sodium);
+                setModalFieldValue('m_sulphate', report.chemical_params.sulphate);
+                setModalFieldValue('m_nitrateN', report.chemical_params.nitrate_n);
+                setModalFieldValue('m_nitrite', report.chemical_params.nitrite);
+                setModalFieldValue('m_tds', report.chemical_params.tds);
+                setModalFieldValue('m_iron', report.chemical_params.iron);
+                setModalFieldValue('m_fluoride', report.chemical_params.fluoride);
+                setModalFieldValue('m_phosphate', report.chemical_params.phosphate);
+            } else {
+                console.warn('⚠️ No chemical_params in report data (expected for priority forms)');
+            }
+
+            // Section 4: Trace Elements (Full mode only) - ALL 21 FIELDS
+            // Note: iron is in chemical_params section, not duplicated here
+            if (report.trace_elements) {
+                console.log('⚗️ Trace elements data:', report.trace_elements);
+                setModalFieldValue('m_aluminum', report.trace_elements.aluminum);
+                setModalFieldValue('m_arsenic', report.trace_elements.arsenic);
+                setModalFieldValue('m_barium', report.trace_elements.barium);
+                setModalFieldValue('m_cadmium', report.trace_elements.cadmium);
+                setModalFieldValue('m_chromium', report.trace_elements.chromium);
+                setModalFieldValue('m_copper', report.trace_elements.copper);
+                setModalFieldValue('m_manganese', report.trace_elements.manganese);
+                setModalFieldValue('m_molybdenum', report.trace_elements.molybdenum);
+                setModalFieldValue('m_nickel', report.trace_elements.nickel);
+                setModalFieldValue('m_lead', report.trace_elements.lead);
+                setModalFieldValue('m_selenium', report.trace_elements.selenium);
+                setModalFieldValue('m_strontium', report.trace_elements.strontium);
+                setModalFieldValue('m_zinc', report.trace_elements.zinc);
+                setModalFieldValue('m_boron', report.trace_elements.boron);
+                setModalFieldValue('m_antimony', report.trace_elements.antimony);
+                setModalFieldValue('m_mercury', report.trace_elements.mercury);
+                setModalFieldValue('m_cyanide', report.trace_elements.cyanide);
+                setModalFieldValue('m_silica', report.trace_elements.silica);
+            } else {
+                console.warn('⚠️ No trace_elements in report data (expected for priority forms)');
+            }
+
+            // Section 5: Microbiological Parameters
+            if (report.microbio_params) {
+                setModalFieldValue('m_totalColiforms', report.microbio_params.total_coliforms);
+                setModalFieldValue('m_fecalColiforms', report.microbio_params.fecal_coliforms);
+                setModalFieldValue('m_eColi', report.microbio_params.e_coli);
+            }
+
+            // Section 6: Quality Assessment
+            if (report.quality_assessment) {
+                setModalFieldValue('m_physicalQuality', report.quality_assessment.physical_quality);
+                setModalFieldValue('m_chemicalQuality', report.quality_assessment.chemical_quality);
+                setModalFieldValue('m_traceElementsQuality', report.quality_assessment.trace_elements_quality);
+                setModalFieldValue('m_microbialQuality', report.quality_assessment.microbial_quality);
+                setModalFieldValue('m_remarks', report.quality_assessment.remarks);
+            }
+        }
+
+        // Helper function to set modal field value
+        function setModalFieldValue(fieldId, value) {
+            const field = document.getElementById(fieldId);
+            if (!field) {
+                return;
+            }
+
+            // Set value even if it's null/undefined (to clear the field)
+            if (value !== null && value !== undefined) {
+                // For select elements, ensure the value exists as an option
+                if (field.tagName === 'SELECT') {
+                    const optionExists = Array.from(field.options).some(opt => opt.value === String(value));
+                    if (optionExists) {
+                        field.value = value;
+                    } else {
+                        field.value = '';
+                    }
+                } else {
+                    field.value = value;
+                }
+            } else {
+                field.value = '';
+            }
+        }
+
+        // Helper function to format datetime for input field
+        function formatDateTimeForInput(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+        }
+
+        // Helper function to format date for input field
+        function formatDateForInput(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toISOString().slice(0, 10); // Format: YYYY-MM-DD
+        }
+
+        // Update modal status badge
+        function updateModalStatusBadge(status) {
+            const badge = document.getElementById('modalStatusBadge');
+            const statusText = status ? status.replace('_', ' ').toUpperCase() : 'UNKNOWN';
+            const statusColors = {
+                'SUBMITTED': '#2196F3',
+                'PENDING REVIEW': '#FF9800',
+                'APPROVED': '#4CAF50',
+                'REJECTED': '#f44336'
+            };
+            const statusColor = statusColors[statusText] || '#999';
+
+            badge.textContent = `Status: ${statusText}`;
+            badge.style.background = statusColor;
+            badge.style.color = 'white';
+        }
+
+        // Update modal buttons based on user permissions and report status
+        function updateModalButtons(report) {
+            const btnEdit = document.getElementById('btnEdit');
+            const btnApprove = document.getElementById('btnApprove');
+            const btnReject = document.getElementById('btnReject');
+
+            // Show Edit button only for environmental_specialist
+            if (btnEdit && currentUser && currentUser.can_view_status_column) {
+                btnEdit.style.display = 'inline-block';
+            } else {
+                if (btnEdit) btnEdit.style.display = 'none';
+            }
+
+            // Show Approve/Reject buttons for environmental_specialist if status allows
+            if (btnApprove && btnReject && currentUser && currentUser.can_view_status_column &&
+                (report.status === 'submitted' || report.status === 'pending_review')) {
+                btnApprove.style.display = 'inline-block';
+                btnReject.style.display = 'inline-block';
+            } else {
+                if (btnApprove) btnApprove.style.display = 'none';
+                if (btnReject) btnReject.style.display = 'none';
+            }
+        }
+
+        // Set form read-only or editable
+        function setFormReadOnly(readonly) {
+            const form = document.getElementById('modalWaterTestForm');
+            if (!form) return;
+
+            const fields = form.querySelectorAll('input, select, textarea');
+            fields.forEach(field => {
+                if (readonly) {
+                    field.setAttribute('disabled', 'disabled');
+                    field.classList.add('form-field-readonly');
+                    field.classList.remove('form-field-editable');
+                } else {
+                    field.removeAttribute('disabled');
+                    field.classList.remove('form-field-readonly');
+                    field.classList.add('form-field-editable');
+                }
+            });
+        }
+
+        // Enable edit mode
+        function enableEditMode() {
+            console.log('enableEditMode() called');
+            isEditMode = true;
+            setFormReadOnly(false);
+
+            // Show edit mode indicator
+            const indicator = document.getElementById('editModeIndicator');
+            if (indicator) {
+                indicator.classList.add('active');
+            }
+
+            // Update buttons
+            const btnEdit = document.getElementById('btnEdit');
+            const btnSave = document.getElementById('btnSave');
+            const btnCancelEdit = document.getElementById('btnCancelEdit');
+            const btnApprove = document.getElementById('btnApprove');
+            const btnReject = document.getElementById('btnReject');
+
+            if (btnEdit) btnEdit.style.display = 'none';
+            if (btnSave) btnSave.style.display = 'inline-block';
+            if (btnCancelEdit) btnCancelEdit.style.display = 'inline-block';
+            if (btnApprove) btnApprove.style.display = 'none';
+            if (btnReject) btnReject.style.display = 'none';
+
+            console.log('Edit mode enabled, buttons updated');
+        }
+
+        // Cancel edit mode
+        function cancelEdit() {
+            console.log('cancelEdit() called');
+            Swal.fire({
+                title: 'Cancel Changes?',
+                text: 'Are you sure you want to discard your changes?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f44336',
+                cancelButtonColor: '#999',
+                confirmButtonText: 'Yes, Discard'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Restore original data
+                    populateModalForm(originalFormData);
+
+                    // Exit edit mode
+                    isEditMode = false;
+                    setFormReadOnly(true);
+
+                    // Hide edit mode indicator
+                    document.getElementById('editModeIndicator').classList.remove('active');
+
+                    // Update buttons
+                    updateModalButtons(currentReportData);
+                }
+            });
+        }
+
+        // Save changes to the report
+        async function saveChanges() {
+            console.log('saveChanges() called');
+            try {
+                // Helper function to safely get element value
+                const getValue = (id) => {
+                    const element = document.getElementById(id);
+                    if (!element) {
+                        console.warn(`Element with id '${id}' not found`);
+                        return '';
+                    }
+                    return element.value || '';
+                };
+
+                // Collect form data - ALL FIELDS
+                const formData = {
+                    // Section 1: Test Report Information
+                    report_serial_no: getValue('m_reportSerialNo'),
+                    total_pages: getValue('m_totalPages'),
+                    customer_name_address: getValue('m_customerNameAddress'),
+                    sample_type: getValue('m_sampleType'),
+                    sampling_datetime: getValue('m_samplingDateTime'),
+                    customer_code: getValue('m_customerCode'),
+                    nwql_sample_code: getValue('m_nwqlSampleCode'),
+                    sample_receipt_datetime: getValue('m_sampleReceiptDateTime'),
+                    temperature_at_receipt: getValue('m_temperatureAtReceipt'),
+                    humidity_at_receipt: getValue('m_humidityAtReceipt'),
+                    analysis_date_from: getValue('m_analysisDateFrom'),
+                    analysis_date_to: getValue('m_analysisDateTo'),
+                    reporting_date: getValue('m_reportingDate'),
+                    gps_latitude: getValue('m_gpsLatitude'),
+                    gps_longitude: getValue('m_gpsLongitude'),
+                    location: getValue('m_location'),
+                    work_order_no: getValue('m_workOrderNo'),
+                    tehsil: getValue('m_tehsil'),
+                    village: getValue('m_village'),
+                    settlement: getValue('m_settlement'),
+                    total_samples: getValue('m_totalSamples'),
+
+                    physical_params: {
+                        ph: getValue('m_ph'),
+                        electrical_conductivity: getValue('m_electricalConductivity'),
+                        temperature: getValue('m_temperature'),
+                        color: getValue('m_color'),
+                        odour: getValue('m_odour'),
+                        taste: getValue('m_taste'),
+                        suspended_solids: getValue('m_suspendedSolids'),
+                        total_dissolved_solids: getValue('m_totalDissolvedSolids'),
+                        turbidity: getValue('m_turbidity')
+                    },
+
+                    chemical_params: {
+                        alkalinity_caco3: getValue('m_alkalinityCaco3'),
+                        bicarbonates: getValue('m_bicarbonates'),
+                        calcium: getValue('m_calcium'),
+                        carbonates: getValue('m_carbonates'),
+                        chlorides: getValue('m_chlorides'),
+                        total_hardness: getValue('m_totalHardness'),
+                        magnesium: getValue('m_magnesium'),
+                        potassium: getValue('m_potassium'),
+                        sodium: getValue('m_sodium'),
+                        sulphate: getValue('m_sulphate'),
+                        nitrate_n: getValue('m_nitrateN'),
+                        nitrite: getValue('m_nitrite'),
+                        tds: getValue('m_tds'),
+                        iron: getValue('m_iron'),
+                        fluoride: getValue('m_fluoride'),
+                        phosphate: getValue('m_phosphate')
+                    },
+
+                    trace_elements: {
+                        aluminum: getValue('m_aluminum'),
+                        arsenic: getValue('m_arsenic'),
+                        barium: getValue('m_barium'),
+                        cadmium: getValue('m_cadmium'),
+                        chromium: getValue('m_chromium'),
+                        copper: getValue('m_copper'),
+                        manganese: getValue('m_manganese'),
+                        molybdenum: getValue('m_molybdenum'),
+                        nickel: getValue('m_nickel'),
+                        lead: getValue('m_lead'),
+                        selenium: getValue('m_selenium'),
+                        strontium: getValue('m_strontium'),
+                        zinc: getValue('m_zinc'),
+                        boron: getValue('m_boron'),
+                        antimony: getValue('m_antimony'),
+                        mercury: getValue('m_mercury'),
+                        cyanide: getValue('m_cyanide'),
+                        silica: getValue('m_silica')
+                    },
+
+                    microbio_params: {
+                        total_coliforms: getValue('m_totalColiforms'),
+                        fecal_coliforms: getValue('m_fecalColiforms'),
+                        e_coli: getValue('m_eColi')
+                    },
+
+                    quality_assessment: {
+                        physical_quality: getValue('m_physicalQuality'),
+                        chemical_quality: getValue('m_chemicalQuality'),
+                        trace_elements_quality: getValue('m_traceElementsQuality'),
+                        microbial_quality: getValue('m_microbialQuality'),
+                        remarks: getValue('m_remarks')
+                    }
+                };
+
+                console.log('Form data to send:', formData);
+
+                // Send update request
+                const response = await fetch(`/api/test-reports/${currentReportId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    await Swal.fire('Success!', 'Report updated successfully', 'success');
+
+                    // Exit edit mode
+                    isEditMode = false;
+                    setFormReadOnly(true);
+                    document.getElementById('editModeIndicator').classList.remove('active');
+
+                    // Reload report data
+                    const refreshResponse = await fetch(`/api/test-reports/${currentReportId}`);
+                    const refreshData = await refreshResponse.json();
+                    if (refreshData.success) {
+                        currentReportData = refreshData.report;
+                        originalFormData = JSON.parse(JSON.stringify(refreshData.report));
+                        populateModalForm(refreshData.report);
+                    }
+
+                    // Update buttons
+                    updateModalButtons(currentReportData);
+
+                    // Reload submissions table
+                    loadSubmissions();
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to update report', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving changes:', error);
+                Swal.fire('Error', 'Error saving changes: ' + error.message, 'error');
+            }
+        }
+
+        // Approve from modal
+        async function approveFromModal() {
+            // Read from closure; fall back to window property in case IIFE re-ran
+            const reportId = currentReportId || window.viewSubmissionsCurrentReportId;
+            if (!reportId) {
+                Swal.fire('Error', 'No report selected for approval', 'error');
+                return;
+            }
+
+            const result = await Swal.fire({
+                title: 'Approve Submission?',
+                text: 'Are you sure you want to approve this submission?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4CAF50',
+                cancelButtonColor: '#999',
+                confirmButtonText: 'Yes, Approve'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/test-reports/${reportId}/approve`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ approval_notes: 'Approved' })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        await Swal.fire('Success!', 'Submission approved successfully', 'success');
+                        closeFormModal();
+                        loadSubmissions();
+                    } else {
+                        Swal.fire('Error', data.message || 'Failed to approve submission', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'Error approving submission', 'error');
+                }
+            }
+        }
+
+        // Reject from modal
+        async function rejectFromModal() {
+            const reportId = currentReportId || window.viewSubmissionsCurrentReportId;
+            if (!reportId) {
+                Swal.fire('Error', 'No report selected for rejection', 'error');
+                return;
+            }
+            const result = await Swal.fire({
+                title: 'Reject Submission?',
+                input: 'textarea',
+                inputLabel: 'Rejection Reason',
+                inputPlaceholder: 'Enter reason for rejection...',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f44336',
+                cancelButtonColor: '#999',
+                confirmButtonText: 'Yes, Reject',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'You must provide a rejection reason!';
+                    }
+                }
+            });
+
+            if (result.isConfirmed && result.value) {
+                try {
+                    const response = await fetch(`/api/test-reports/${reportId}/reject`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ rejection_reason: result.value })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        await Swal.fire('Rejected!', 'Submission rejected successfully', 'success');
+                        closeFormModal();
+                        loadSubmissions();
+                    } else {
+                        Swal.fire('Error', data.message || 'Failed to reject submission', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'Error rejecting submission', 'error');
+                }
+            }
+        }
+
+        function showError(message) {
+            Swal.fire('Error', message, 'error');
+        }
+
+        // Initialize - handle both cases: DOM already loaded or still loading
+        function initializePage() {
+            console.log('🚀 Initializing View Submissions page...');
+            console.log('📍 Document ready state:', document.readyState);
+            loadCurrentUser();
+        }
+
+        // Check if DOM is already loaded (script at end of body)
+        if (document.readyState === 'loading') {
+            // DOM is still loading, wait for it
+            console.log('⏳ DOM is still loading, waiting for DOMContentLoaded...');
+            document.addEventListener('DOMContentLoaded', initializePage);
+        } else {
+            // DOM is already loaded (script at end of body)
+            console.log('✅ DOM already loaded, initializing immediately...');
+            initializePage();
+        }
+
+        // Go to dashboard using SPA navigation
+        function goToDashboard() {
+            // loadPage is defined in parent index.html and attached to window
+            if (typeof window.loadPage === 'function') {
+                // Find and activate the dashboard nav item
+                const dashboardNavItem = document.querySelector('.nav-item[onclick*="/dashboard"]');
+                if (dashboardNavItem) {
+                    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                    dashboardNavItem.classList.add('active');
+                }
+                window.loadPage('/dashboard', dashboardNavItem);
+            } else {
+                // Fallback to direct navigation
+                window.location.href = '/dashboard';
+            }
+        }
+
+        // Download report as PDF
+        function downloadReportPDF(reportId) {
+            if (!reportId) return;
+            window.open(`/api/test-reports/${reportId}/download-pdf`, '_blank');
+        }
+
+        // Download report as HTML
+        function downloadReportHTML(reportId) {
+            if (!reportId) return;
+            window.open(`/api/test-reports/${reportId}/download-html`, '_blank');
+        }
+
+        // Expose functions to global scope for onclick handlers
+        window.viewDetails = viewDetails;
+        window.closeFormModal = closeFormModal;
+        window.enableEditMode = enableEditMode;
+        window.cancelEdit = cancelEdit;
+        window.saveChanges = saveChanges;
+        window.approveFromModal = approveFromModal;
+        window.rejectFromModal = rejectFromModal;
+        window.goToDashboard = goToDashboard;
+        window.downloadReportPDF = downloadReportPDF;
+        window.downloadReportHTML = downloadReportHTML;
+    })(); // End IIFE
+</script>

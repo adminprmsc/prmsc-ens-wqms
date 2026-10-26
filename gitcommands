@@ -1,0 +1,6 @@
+git add .
+git commit -m "Updates: after deployment main changes"
+
+
+// Dont run this
+// git push -u origin main

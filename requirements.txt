@@ -1,0 +1,12 @@
+Flask==2.3.3
+Flask-CORS==4.0.0
+Flask-SQLAlchemy==3.0.5
+Flask-Mail==0.9.1
+SQLAlchemy==2.0.21
+Werkzeug==2.3.7
+python-dotenv==1.0.0
+anthropic>=0.109.0
+pypdf>=4.0.0
+pdf2image>=1.17.0
+pytesseract>=0.3.10
+reportlab

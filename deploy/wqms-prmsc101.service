@@ -1,0 +1,22 @@
+[Unit]
+Description=WQMS Flask (Arsham) - Gunicorn
+After=network.target
+
+[Service]
+Type=simple
+User=prmsc101
+Group=prmsc101
+WorkingDirectory=/home/prmsc101/wqms-flask
+Environment="PATH=/home/prmsc101/wqms-flask/venv/bin"
+EnvironmentFile=-/home/prmsc101/wqms-flask/.env
+ExecStart=/home/prmsc101/wqms-flask/venv/bin/gunicorn -c gunicorn_config.py app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=30
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
