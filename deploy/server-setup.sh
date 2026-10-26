@@ -7,7 +7,7 @@ cd "$APP_DIR"
 
 echo "==> System packages (OCR + PDF for lab import)"
 sudo apt-get update -qq
-sudo apt-get install -y python3 python3-venv python3-pip \
+sudo apt-get install -y python3 python3-venv python3-pip sqlite3 \
   tesseract-ocr poppler-utils nginx
 
 echo "==> Python venv"
