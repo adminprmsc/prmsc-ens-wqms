@@ -53,6 +53,10 @@ grep -q '^FLASK_ENV=' .env 2>/dev/null || echo 'FLASK_ENV=production' >> .env
 echo "==> Install / refresh Python app (Gunicorn on 127.0.0.1:5000)"
 bash deploy/server-setup.sh
 
+echo "==> Nginx must read static files under /home/prmsc101"
+chmod o+x "${HOME}"
+chmod -R o+rX "${APP_DIR}/static" "${APP_DIR}/uploads" 2>/dev/null || true
+
 echo "==> Host Nginx on :80 (freed after wqms-web stopped)"
 sudo cp deploy/wqms.essprmsc.com.flask.conf /etc/nginx/sites-available/wqms.essprmsc.com
 sudo ln -sf /etc/nginx/sites-available/wqms.essprmsc.com /etc/nginx/sites-enabled/
