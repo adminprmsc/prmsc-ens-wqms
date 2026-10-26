@@ -21,7 +21,8 @@ No Postgres required for this project.
 Use the copy of the app that has the data you want live (including `instance/water_quality.db`).
 
 ```bash
-cd "/Users/aubairakif/Codebases/ESS PRMSC-HO/Water Quality/Arsham code/wqms"
+cd "/Users/aubairakif/Codebases/ESS PRMSC-HO/Water Quality/SourceCode"
+git checkout dev
 ./deploy/push-from-local.sh
 ```
 
@@ -55,7 +56,20 @@ sqlite3 instance/water_quality.db "SELECT count(*) FROM test_report_metadata;"
 
 ---
 
-## 3. Nginx (public access)
+## 3. Go live (stop Docker web, keep Postgres, enable Nginx)
+
+On the VM after step 2:
+
+```bash
+cd ~/wqms-flask
+bash deploy/vm-go-live.sh
+```
+
+This stops **`wqms-web`** and **`wqms-api`** only. **`wqms-postgres`** stays up (volume/data preserved). Do **not** run `docker compose down -v`.
+
+---
+
+## 4. Nginx (manual alternative)
 
 One-time (or after config changes):
 
