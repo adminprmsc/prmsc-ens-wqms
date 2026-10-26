@@ -785,10 +785,11 @@ def login():
         if not data.get('email') or not data.get('password'):
             return jsonify({'success': False, 'message': 'Missing email or password'}), 400
 
-        # Find user
-        user = User.query.filter_by(email=data['email']).first()
+        # Find user (email is case-insensitive)
+        email = (data['email'] or '').strip().lower()
+        user = User.query.filter(db.func.lower(User.email) == email).first()
 
-        if not user or not user.check_password(data['password']):
+        if not user or not user.password_hash or not user.check_password(data['password']):
             return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
 
         if not user.is_active:
