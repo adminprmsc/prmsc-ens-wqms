@@ -883,6 +883,160 @@
         color: #0f172a;
     }
 
+    /* Approve / reject confirmation — above report modal (z-index 2000) */
+    .decision-dialog-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 3000;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(6px);
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .decision-dialog-overlay.active {
+        display: flex;
+    }
+
+    .decision-dialog {
+        background: #fff;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 440px;
+        padding: 28px 28px 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+        text-align: center;
+        animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .decision-dialog-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        margin-bottom: 16px;
+    }
+
+    .decision-dialog-icon.approve {
+        background: #ecfdf5;
+        color: #059669;
+        border: 2px solid #a7f3d0;
+    }
+
+    .decision-dialog-icon.reject {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 2px solid #fecaca;
+    }
+
+    .decision-dialog h3 {
+        margin: 0 0 8px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .decision-dialog p {
+        margin: 0 0 20px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #64748b;
+    }
+
+    .decision-dialog-reason {
+        display: none;
+        text-align: left;
+        margin-bottom: 20px;
+    }
+
+    .decision-dialog-reason.visible {
+        display: block;
+    }
+
+    .decision-dialog-reason label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 8px;
+    }
+
+    .decision-dialog-reason textarea {
+        width: 100%;
+        min-height: 88px;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+
+    .decision-dialog-reason textarea.input-error {
+        border-color: #ef4444;
+        background: #fef2f2;
+    }
+
+    .decision-dialog-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .decision-btn {
+        flex: 1;
+        max-width: 160px;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .decision-btn:active {
+        transform: scale(0.98);
+    }
+
+    .decision-btn-cancel {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .decision-btn-cancel:hover {
+        background: #e2e8f0;
+    }
+
+    .decision-btn-confirm.approve {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    .decision-btn-confirm.reject {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+
+    .decision-btn-confirm:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* SweetAlert toasts/alerts above report modal when still used */
+    .swal2-container {
+        z-index: 10050 !important;
+    }
+
     @media (max-width: 768px) {
         .filters {
             flex-direction: column;
@@ -1066,10 +1220,10 @@
             <button type="button" id="btnEdit" class="modal-icon-btn" onclick="enableEditMode()" title="Edit" style="display: none;">
                 <i class="fas fa-edit"></i>
             </button>
-            <button type="button" id="btnApprove" class="modal-icon-btn approve" onclick="approveFromModal()" title="Approve" style="display: none;">
+            <button type="button" id="btnApprove" class="modal-icon-btn approve" onclick="approveFromModal(event)" title="Approve" style="display: none;">
                 <i class="fas fa-check-circle"></i>
             </button>
-            <button type="button" id="btnReject" class="modal-icon-btn reject" onclick="rejectFromModal()" title="Reject" style="display: none;">
+            <button type="button" id="btnReject" class="modal-icon-btn reject" onclick="rejectFromModal(event)" title="Reject" style="display: none;">
                 <i class="fas fa-times-circle"></i>
             </button>
             <button type="button" class="modal-icon-btn pdf" onclick="downloadReportPDF(currentReportId)" title="Download PDF">
@@ -1078,6 +1232,25 @@
             <button type="button" id="btnClose" class="modal-icon-btn close-btn" onclick="closeFormModal()" title="Close">
                 <i class="fas fa-times"></i>
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Approve / Reject confirmation (layered above report modal) -->
+<div id="decisionDialogOverlay" class="decision-dialog-overlay" aria-hidden="true" role="presentation">
+    <div class="decision-dialog" role="dialog" aria-modal="true" aria-labelledby="decisionDialogTitle">
+        <div id="decisionDialogIcon" class="decision-dialog-icon approve">
+            <i class="fas fa-check"></i>
+        </div>
+        <h3 id="decisionDialogTitle">Approve submission?</h3>
+        <p id="decisionDialogMessage">This will mark the report as approved and notify the submitter.</p>
+        <div id="decisionDialogReasonWrap" class="decision-dialog-reason">
+            <label for="decisionDialogReason">Rejection reason <span style="color:#ef4444">*</span></label>
+            <textarea id="decisionDialogReason" placeholder="Explain why this submission is being rejected…"></textarea>
+        </div>
+        <div class="decision-dialog-actions">
+            <button type="button" class="decision-btn decision-btn-cancel" id="decisionDialogCancel">Cancel</button>
+            <button type="button" class="decision-btn decision-btn-confirm approve" id="decisionDialogConfirm">Yes, approve</button>
         </div>
     </div>
 </div>
@@ -2681,94 +2854,192 @@
             }
         }
 
+        /**
+         * In-app approve/reject dialog (z-index above report modal).
+         * @returns {Promise<{confirmed: boolean, reason?: string}>}
+         */
+        function showDecisionDialog(mode) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('decisionDialogOverlay');
+                const icon = document.getElementById('decisionDialogIcon');
+                const titleEl = document.getElementById('decisionDialogTitle');
+                const messageEl = document.getElementById('decisionDialogMessage');
+                const reasonWrap = document.getElementById('decisionDialogReasonWrap');
+                const reasonEl = document.getElementById('decisionDialogReason');
+                const btnCancel = document.getElementById('decisionDialogCancel');
+                const btnConfirm = document.getElementById('decisionDialogConfirm');
+
+                const isReject = mode === 'reject';
+                icon.className = 'decision-dialog-icon ' + (isReject ? 'reject' : 'approve');
+                icon.innerHTML = isReject
+                    ? '<i class="fas fa-times"></i>'
+                    : '<i class="fas fa-check"></i>';
+                titleEl.textContent = isReject ? 'Reject submission?' : 'Approve submission?';
+                messageEl.textContent = isReject
+                    ? 'The submitter will see your reason. This action cannot be undone from the dashboard.'
+                    : 'Confirm that you have reviewed this report and it meets approval criteria.';
+                reasonWrap.classList.toggle('visible', isReject);
+                reasonEl.value = '';
+                reasonEl.classList.remove('input-error');
+                btnConfirm.textContent = isReject ? 'Yes, reject' : 'Yes, approve';
+                btnConfirm.className =
+                    'decision-btn decision-btn-confirm ' + (isReject ? 'reject' : 'approve');
+                btnConfirm.disabled = false;
+
+                function closeDialog(result) {
+                    overlay.classList.remove('active');
+                    overlay.setAttribute('aria-hidden', 'true');
+                    btnCancel.removeEventListener('click', onCancel);
+                    btnConfirm.removeEventListener('click', onConfirm);
+                    overlay.removeEventListener('click', onOverlayClick);
+                    document.removeEventListener('keydown', onKeyDown);
+                    resolve(result);
+                }
+
+                function onCancel() {
+                    closeDialog({ confirmed: false });
+                }
+
+                function onConfirm() {
+                    if (isReject) {
+                        const reason = reasonEl.value.trim();
+                        if (!reason) {
+                            reasonEl.classList.add('input-error');
+                            reasonEl.focus();
+                            return;
+                        }
+                        closeDialog({ confirmed: true, reason });
+                    } else {
+                        closeDialog({ confirmed: true });
+                    }
+                }
+
+                function onOverlayClick(e) {
+                    if (e.target === overlay) {
+                        onCancel();
+                    }
+                }
+
+                function onKeyDown(e) {
+                    if (e.key === 'Escape') {
+                        onCancel();
+                    }
+                }
+
+                btnCancel.addEventListener('click', onCancel);
+                btnConfirm.addEventListener('click', onConfirm);
+                overlay.addEventListener('click', onOverlayClick);
+                document.addEventListener('keydown', onKeyDown);
+
+                overlay.classList.add('active');
+                overlay.setAttribute('aria-hidden', 'false');
+                btnConfirm.focus();
+            });
+        }
+
+        function showToast(title, text, icon) {
+            if (typeof Swal !== 'undefined') {
+                return Swal.fire({
+                    title,
+                    text,
+                    icon,
+                    confirmButtonColor: '#1e3c72',
+                    customClass: { container: 'swal-above-modal' }
+                });
+            }
+            alert(title + (text ? '\n' + text : ''));
+            return Promise.resolve();
+        }
+
         // Approve from modal
-        async function approveFromModal() {
-            // Read from closure; fall back to window property in case IIFE re-ran
+        async function approveFromModal(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             const reportId = currentReportId || window.viewSubmissionsCurrentReportId;
             if (!reportId) {
-                Swal.fire('Error', 'No report selected for approval', 'error');
+                showToast('Error', 'No report selected for approval', 'error');
                 return;
             }
 
-            const result = await Swal.fire({
-                title: 'Approve Submission?',
-                text: 'Are you sure you want to approve this submission?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#4CAF50',
-                cancelButtonColor: '#999',
-                confirmButtonText: 'Yes, Approve'
-            });
+            const result = await showDecisionDialog('approve');
+            if (!result.confirmed) {
+                return;
+            }
 
-            if (result.isConfirmed) {
-                try {
-                    const response = await fetch(`/api/test-reports/${reportId}/approve`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ approval_notes: 'Approved' })
-                    });
+            const btnConfirm = document.getElementById('decisionDialogConfirm');
+            if (btnConfirm) {
+                btnConfirm.disabled = true;
+                btnConfirm.textContent = 'Approving…';
+            }
 
-                    const data = await response.json();
+            try {
+                const response = await fetch(`/api/test-reports/${reportId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ approval_notes: 'Approved' })
+                });
 
-                    if (data.success) {
-                        await Swal.fire('Success!', 'Submission approved successfully', 'success');
-                        closeFormModal();
-                        loadSubmissions();
-                    } else {
-                        Swal.fire('Error', data.message || 'Failed to approve submission', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'Error approving submission', 'error');
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('decisionDialogOverlay').classList.remove('active');
+                    closeFormModal();
+                    loadSubmissions();
+                    await showToast('Approved', 'Submission approved successfully', 'success');
+                } else {
+                    showToast('Error', data.message || 'Failed to approve submission', 'error');
                 }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error', 'Error approving submission', 'error');
             }
         }
 
         // Reject from modal
-        async function rejectFromModal() {
+        async function rejectFromModal(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
             const reportId = currentReportId || window.viewSubmissionsCurrentReportId;
             if (!reportId) {
-                Swal.fire('Error', 'No report selected for rejection', 'error');
+                showToast('Error', 'No report selected for rejection', 'error');
                 return;
             }
-            const result = await Swal.fire({
-                title: 'Reject Submission?',
-                input: 'textarea',
-                inputLabel: 'Rejection Reason',
-                inputPlaceholder: 'Enter reason for rejection...',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#f44336',
-                cancelButtonColor: '#999',
-                confirmButtonText: 'Yes, Reject',
-                inputValidator: (value) => {
-                    if (!value) {
-                        return 'You must provide a rejection reason!';
-                    }
+
+            const result = await showDecisionDialog('reject');
+            if (!result.confirmed || !result.reason) {
+                return;
+            }
+
+            const btnConfirm = document.getElementById('decisionDialogConfirm');
+            if (btnConfirm) {
+                btnConfirm.disabled = true;
+                btnConfirm.textContent = 'Rejecting…';
+            }
+
+            try {
+                const response = await fetch(`/api/test-reports/${reportId}/reject`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rejection_reason: result.reason })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('decisionDialogOverlay').classList.remove('active');
+                    closeFormModal();
+                    loadSubmissions();
+                    await showToast('Rejected', 'Submission rejected successfully', 'success');
+                } else {
+                    showToast('Error', data.message || 'Failed to reject submission', 'error');
                 }
-            });
-
-            if (result.isConfirmed && result.value) {
-                try {
-                    const response = await fetch(`/api/test-reports/${reportId}/reject`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ rejection_reason: result.value })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        await Swal.fire('Rejected!', 'Submission rejected successfully', 'success');
-                        closeFormModal();
-                        loadSubmissions();
-                    } else {
-                        Swal.fire('Error', data.message || 'Failed to reject submission', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire('Error', 'Error rejecting submission', 'error');
-                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error', 'Error rejecting submission', 'error');
             }
         }
 
